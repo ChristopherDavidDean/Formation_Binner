@@ -8,7 +8,7 @@
 #=========================================================== DATA SETUP ======================================================================
 
 # Set working directory
-setwd("C:/Users/deancd/Documents/RESEARCH/PROJECTS/FRM_BIN/Update_R/") # Set your working directory
+setwd("C:/Users/deancd/Documents/RESEARCH/PROJECTS/FRM_BIN/Formation_Binner/Formation_Binner/") # Set your working directory
 
 # Load in Functions
 source("0_Functions_Form_Binner.R") # Import functions from other R file (must be in same working directory)
