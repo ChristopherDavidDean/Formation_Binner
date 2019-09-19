@@ -79,26 +79,32 @@ FormBin_M3(formations, binlist, Form_list, times = 100, Quorum) # Generates plot
 Scoring_Grid_1(formations)
 bin_limits <- c(3, max(formations$max_age), 66)
 newBins(score_grid, formations, bin_limits, allbins, stages)
+FormBin_M2(formations, binlist, Form_list, Quorum)
 
 Scoring_Grid_2(formations)
 bin_limits <- c(3, max(formations$max_age), 66)
 newBins(score_grid, formations, bin_limits, allbins, stages)
+FormBin_M2(formations, binlist, Form_list, Quorum)
 
 # 2 Ma resolution
 Scoring_Grid_1(formations)
 bin_limits <- c(2, max(formations$max_age), 66)
 newBins(score_grid, formations, bin_limits, allbins, stages)
+FormBin_M2(formations, binlist, Form_list, Quorum)
 
 Scoring_Grid_2(formations)
 bin_limits <- c(2, max(formations$max_age), 66)
 newBins(score_grid, formations, bin_limits, allbins, stages)
+FormBin_M2(formations, binlist, Form_list, Quorum)
 
 # 4 Ma resolution
 Scoring_Grid_1(formations)
 bin_limits <- c(4, max(formations$max_age), 66)
 newBins(score_grid, formations, bin_limits, allbins, stages)
+FormBin_M2(formations, binlist, Form_list, Quorum)
 
 Scoring_Grid_2(formations)
 bin_limits <- c(4, max(formations$max_age), 66)
 newBins(score_grid, formations, bin_limits, allbins, stages)
+FormBin_M2(formations, binlist, Form_list, Quorum)
 
