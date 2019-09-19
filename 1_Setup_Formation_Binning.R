@@ -68,7 +68,7 @@ FormationGraph(formations, form_bins, stages) # Visualises the range of formatio
 ### Running Methods ###
 FormBin_M1(formations, binlist, Form_list, Quorum) # Generates formation binned plots of diversity, sampling proxies and SQS results using an inclusive model
 FormBin_M2(formations, binlist, Form_list, Quorum) # Generates formation binned plots of diversity, sampling proxies and SQS results using an exclusive model
-FormBin_M3(formations, binlist, Form_list, times = 2, Quorum) # Generates plots of diversity, sampling proxies and SQS results using a representative model. 
+FormBin_M3(formations, binlist, Form_list, times = 100, Quorum) # Generates plots of diversity, sampling proxies and SQS results using a representative model. 
 # Must be run 2 times or more. At high times of times, might take a while!
 
 # Testing Resolution

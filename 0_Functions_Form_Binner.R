@@ -6,8 +6,7 @@
 #
 #=============================================== iPAK AND REQUIRED PACKAGES =====================================================
 
-# fucntion that automatically installs necessary packages that the user is lacking.
-
+# function that automatically installs necessary packages that the user is lacking.
 #===== iPAK =====
 ipak <- function(pkg){ # Function to install packages. Read in character vector of any packages required. 
   new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
@@ -19,7 +18,7 @@ ipak <- function(pkg){ # Function to install packages. Read in character vector 
 #=============================================== GET_INFO ============================================================
 
 # Retrieves basic information about inputted formations, including mean age and range.
-GetInfo <- function(formations){
+GetInfo <- function(formations){ # Require formation data
   mean <- rowMeans(subset(formations, select = c(3, 4)), na.rm = TRUE)
   range <- formations$max_age - formations$min_age
   par(mfrow=c(2,1))
@@ -33,7 +32,7 @@ GetInfo <- function(formations){
 
 # Functions to create a score grid to identify best position to draw boundaries between formations. The function 
 # looks through time at intervals and gives a suitability score for each formation to draw a boundary at that point.
-# If a formation does not cross that boundary, the formation is given a score of 100.If it does cross that boundary,
+# If a formation does not cross that boundary, the formation is given a score of 100. If it does cross that boundary,
 # it works out how much of the formation sits each side of the boundary, and downweights accordingly - e.g. if a 
 # formation was found to have 10% of it's total range one side of a boundary and 90% the other, it would receive a
 # higher score than a formation where 50% of it's range sat either side. Mean scores are generated for each time bin.
@@ -41,7 +40,7 @@ GetInfo <- function(formations){
 #==== Scoring_Grid_1 ====
 
 # Creates a scoring grid using info from all formations.
-Scoring_Grid_1 <- function(formations, res=0.01) { #includes all formations
+Scoring_Grid_1 <- function(formations, res=0.01) { # Requires formation information. Resolution of time lines is set automatically at 0.01, but can be adjusted.
   max_age <- max(formations$max_age) #finds max age of all formations
   min_age <- min(formations$min_age) #finds min age of all formations
   allbins <- seq(min_age-1.0045, max_age+1.0045, res) # Makes 1ma bins in sequence based on max/min ages. 0.0045 added to ensure formation is never exactly equivalent to a bin.
@@ -53,15 +52,14 @@ Scoring_Grid_1 <- function(formations, res=0.01) { #includes all formations
   
   counter <- 0
   for(i in allbins) { # Go through each time line
-    counter <- sum(counter,1)
+    counter <- sum(counter,1) 
     for (f in 1:nrow(formations)){ # go through each formation 
       if (i <= formations$max_age[f] && i >= formations$min_age[f]){ # if timeline is between max/min age of a formation (i.e. formation crosses that line)
-        # Need to translate i to position in grid - think this should work
-        a <- formations$max_age[f] - i
-        b <- i - formations$min_age[f]
-        range <- formations$max_age[f] - formations$min_age[f]
+        a <- formations$max_age[f] - i # Work out how much of formation is older than timeline
+        b <- i - formations$min_age[f] # Work out how much of formation is younger than timeline
+        range <- formations$max_age[f] - formations$min_age[f] # Calculate range of formation
         if (a > b){
-          score_grid[,counter][f] <- (a/range)*100
+          score_grid[,counter][f] <- (a/range)*100 # Work out percentage that sits each side of line, reduce score by that amount.
         }
         else{ 
           score_grid[,counter][f] <- (b/range)*100 # Work out percentage that sits each side of line, reduce score by that amount.
@@ -80,14 +78,14 @@ Scoring_Grid_1 <- function(formations, res=0.01) { #includes all formations
 
 #==== Scoring_Grid_2 ====
 
-# Create a scoring grid ignoring formations with length longer than mean formation length. 
-Scoring_Grid_2 <- function(formations, res=0.01) { # ignores formations longer than mean range
+# Create a scoring grid ignoring formations with length longer than mean formation length. In his way, long ranging formations don't 
+# bias the creation of bins, especially when they appear during the same time interval.
+Scoring_Grid_2 <- function(formations, res=0.01) { # Requires formation information. Resolution of time lines is set automatically at 0.01, but can be adjusted.
   max_age <- max(formations$max_age) #finds max age of all formations
   min_age <- min(formations$min_age) #finds min age of all formations
   allbins <- seq(min_age-1.0045, max_age+1.0045, res) # Makes 1ma bins in sequence based on max/min ages. 0.0001 added to ensure formation is never exactly equivalent to a bin.
   
-  score_grid <- matrix(data = NA, nrow = nrow(formations), ncol = length(allbins)) # makes a matrix for the scoring 
-  # of each time line in terms of how good it is to be a bin boundary
+  score_grid <- matrix(data = NA, nrow = nrow(formations), ncol = length(allbins)) # makes a matrix for the scoring of each time line in terms of how good it is to be a bin boundary
   colnames(score_grid) <- allbins # All time lines
   rownames(score_grid) <- formations$Formation # All formations
   
@@ -95,13 +93,12 @@ Scoring_Grid_2 <- function(formations, res=0.01) { # ignores formations longer t
   for(i in allbins) { # Go through each time line
     counter <- sum(counter,1)
     for (f in 1:nrow(formations)){ # go through each formation 
-      if (formations$max_age[f] - formations$min_age[f] < 
+      if (formations$max_age[f] - formations$min_age[f] < # If formation range is less than the mean formation range
           mean(formations$max_age - formations$min_age)) {
         if (i <= formations$max_age[f] && i >= formations$min_age[f]){ # if timeline is between max/min age of a formation (i.e. formation crosses that line)
-          # Need to translate i to position in grid - think this should work
-          a <- formations$max_age[f] - i
-          b <- i - formations$min_age[f]
-          range <- formations$max_age[f] - formations$min_age[f]
+          a <- formations$max_age[f] - i # Work out how much of formation is older than timeline
+          b <- i - formations$min_age[f] # Work out how much of formation is younger than timeline
+          range <- formations$max_age[f] - formations$min_age[f] # Calculate range of formation
           if (a > b){
             score_grid[,counter][f] <- (a/range)*100
           }
@@ -113,12 +110,12 @@ Scoring_Grid_2 <- function(formations, res=0.01) { # ignores formations longer t
           score_grid[,counter][f] = 100 # Otherwise, just score it 100. 
         }
       }
-      else {
+      else { # If formation range is longer than mean formation range, skip (bin drawing isn't affected)
         next
       }
     }
   }  
-  score_grid <- na.omit(score_grid)
+  score_grid <- na.omit(score_grid) # Remove effect of formations longer than mean formation range
   means <- colMeans(score_grid) # Work out mean score for each time bin
   score_grid <- rbind(score_grid, means) # add to grid
   score_grid <<- score_grid
@@ -130,16 +127,16 @@ Scoring_Grid_2 <- function(formations, res=0.01) { # ignores formations longer t
 # Generates plots through time with user inputted data and Formation_Bins, whilst providing traditional stage 
 # data for comparison. NOTE: xlim is specified to fit the chosen time window of this study - as such, this would
 # have to be adjusted if other data were to be used.
-plotMaker <- function(rel_data, binlist, ulabel){
-  useful_bins <- c(binlist$bottom, binlist$top[nrow(binlist)])
-  tsplot(stages, boxes=c("short","system"), ylab = ulabel,
+plotMaker <- function(rel_data, binlist, ulabel){ # Takes relevant data for plotting, binlist(dataframe of bins) and a user generated level for y axis. 
+  useful_bins <- c(binlist$bottom, binlist$top[nrow(binlist)]) # Converts binlist into format useful for plotting
+  tsplot(stages, boxes=c("short","system"), ylab = ulabel, # Creates plot using data from DivDyn package. 
          xlim=75:81,  ylim=c(0,(max(rel_data, na.rm = TRUE)+(max(rel_data, na.rm = TRUE)*0.1))), 
          shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75))  
-  for(n in 1:length(useful_bins)){
-    if(((n %% 2) == 0) == TRUE) next
+  for(n in 1:length(useful_bins)){ # For each bin
+    if(((n %% 2) == 0) == TRUE) next # If the bin is even, skip it (allows for alternating colours of bins)
     else {
       if(n == length(useful_bins)){
-        if(nrow(binlist) %% 2 == 0){
+        if(nrow(binlist) %% 2 == 0){ # Skips colouring last bin if there are an even number of bins
           next
         }
         else{
@@ -155,16 +152,21 @@ plotMaker <- function(rel_data, binlist, ulabel){
       }
     }
   }
-  lines(binlist$mid, rel_data, type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
+  lines(binlist$mid, rel_data, type = "o", pch = 21, col = "black", bg = "grey", lwd = 1) # Adds lines from relevant data provided.
 }
 
 #=============================================== NEWBINS ==============================================================
 
-# Looks at the previously generated score_grid and graphically highlights all places where it would be suitable to draw
-# a boundary, above a user specified threshold (thresh). Boundaries are outputted as a list (binlist).
+# Looks at the previously generated score_grid and generates appropriate new bins based on those scores. Boundaries are 
+# outputted as a list (binlist). If bins are shorter than 0.5 Ma, they are amalgamated into the bins above and below, and 
+# a warning is produced.
 
-newBins <- function(score_grid, formations, bin_limits, allbins, stages){
-  # Set up
+newBins <- function(score_grid, formations, bin_limits, allbins, stages){ # Takes previously generated score grid, formations, 
+  # allbins and stages from DivDyn package. Also require bin_limits, a user made vector of the following: 
+  # 1) user chosen time window in which to look to draw bins. Advised to be set at 3 Ma. 
+  # 2) Hard maximum age of bins
+  # 3) Hard minimum age of bins
+
   score_grid<- as.data.frame(score_grid)
   bin_size <- bin_limits[1]
   max_age <- bin_limits[2]
@@ -174,31 +176,31 @@ newBins <- function(score_grid, formations, bin_limits, allbins, stages){
   
   # Drawing bins and giving form_bins (vector of bin boundaries)
   for (i in 1:length((testbin)-1)){
-    seqs <- seq(testbin[i],testbin[i]+bin_size, 1)
+    seqs <- seq(testbin[i],testbin[i]+bin_size, 1) # Creates a sequence of ages to draw bins within
     pasting <- c()
     for (n in 1:bin_size){
-      pasting <- c(pasting, paste("^",seqs[n],"|", sep = ""))
+      pasting <- c(pasting, paste("^",seqs[n],"|", sep = "")) # Sets up expression to match to score_grid
     }
     testmatch2 <- paste(pasting, collapse = "")
     testmatch2 <- substr(testmatch2, 1, nchar(testmatch2)-1) 
-    a <- score_grid[grep(testmatch2, names(score_grid))] 
-    z <- apply(a,1,which.max) 
-    form_bins[i+1] <- names(a)[z][nrow(a)]
+    a <- score_grid[grep(testmatch2, names(score_grid))] # Finds all scores within this time window
+    z <- apply(a,1,which.max) # Finds maximum bin score within this time window
+    form_bins[i+1] <- names(a)[z][nrow(a)] # Adds maximum bin score to a vector of bins
   }
-  form_bins <- as.numeric(unique(form_bins))
-  range <- (diff(form_bins) < 0.5)
+  form_bins <- as.numeric(unique(form_bins)) # Finds all unique bins
+  range <- (diff(form_bins) < 0.5) # Finds all bins which are under 0.5 Ma in length
   range_checker <- c()
   for (r in 1:length(range)){
-    if (range[r] == TRUE){
-      difference <- diff(c(form_bins[r], form_bins[r+1]))
-      warning("Original bin ",  r, " removed due to small range: ~", signif(difference, digits = 3), " Ma. The difference in time has been added to the bins above and below.")
-      form_bins[r] <- form_bins[r]+(difference/2)
-      form_bins[r+1] <- form_bins[r+1]-(difference/2)
-      range_checker <- c(range_checker, r)
+    if (range[r] == TRUE){ # If a bin is under 0.5 Ma in length
+      difference <- diff(c(form_bins[r], form_bins[r+1])) # Find the length of that bin
+      warning("Original bin ",  r, " removed due to small range: ~", signif(difference, digits = 3), " Ma. The difference in time has been added to the bins above and below.") # Generate warning about bin amalgamation
+      form_bins[r] <- form_bins[r]+(difference/2) # Adds half length of old bin to bin below
+      form_bins[r+1] <- form_bins[r+1]-(difference/2) # Adds half length of old bin to bin above
+      range_checker <- c(range_checker, r) # Records which bin was too small
     }
   }
-  if(length(range_checker) > 0){
-    form_bins <- form_bins[-range_checker]
+  if(length(range_checker) > 0){ # If there have been amalgamated bins
+    form_bins <- form_bins[-range_checker] # Remove old amalgamated bins
   }
   form_bins <<- form_bins
   
@@ -206,7 +208,7 @@ newBins <- function(score_grid, formations, bin_limits, allbins, stages){
   prefix <- "FB."
   suffix <- seq(1:(length(form_bins)-1))
   my_names <- paste(prefix, suffix, sep = "")
-  binlist <- data.frame(bin = my_names, 
+  binlist <- data.frame(bin = my_names, # Combines bin data to make dataframe of minimum, maximum and mid point of each new bin
                         bottom = as.numeric(form_bins[1:(length(form_bins)-1)]), 
                         top = as.numeric(form_bins[2:(length(form_bins))]))
   binlist$mid <- (binlist$bottom + binlist$top) / 2
@@ -214,14 +216,14 @@ newBins <- function(score_grid, formations, bin_limits, allbins, stages){
 
   #Plotting new bins
   par(mar = c(4.1, 4.1, 1, 2.1))
-  tsplot(stages, boxes=c("short","system"),
+  tsplot(stages, boxes=c("short","system"), # Generates plot using DivDyn package
          xlim=75:81,  ylim=c(min(colMeans(score_grid), na.rm = TRUE), 100), 
          shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75),
          ylab = "Bin Splitting Score") 
-  lines(allbins, colMeans(score_grid))
+  lines(allbins, colMeans(score_grid)) # draws bin splitting score on plot
   
   
-  for(n in 1:length(form_bins)){
+  for(n in 1:length(form_bins)){ # draws new bins as coloured boxes for comparison to traditional bins
     if(((n %% 2) == 0) == TRUE) next
     else {
       if(n == length(form_bins)){
@@ -242,16 +244,16 @@ newBins <- function(score_grid, formations, bin_limits, allbins, stages){
 #=============================================== FORMATIONGRAPH =======================================================
 
 # Shows what formations look like through time in comparison to Stages and new Bins.
-FormationGraph <- function(formations, form_bins, stages){
+FormationGraph <- function(formations, form_bins, stages){ # Requires formations, form_bins from newBins function and stages from DivDyn package
   fp <- data.frame("x1" = formations$min_age, "y1" = formations$forbinning, 'x2' = formations$max_age, 'y2' = formations$forbinning)
   par(mar = c(4.1, 4.1, 1, 2.1))
-  tsplot(stages, boxes=c("short","system"),
+  tsplot(stages, boxes=c("short","system"), # Generates plot using Divdyn package
          xlim=75:81,  ylim=range(fp$y1, fp$y2), 
          shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75),
          ylab = "Formations by Number")
-  segments(fp$x1, fp$y1, fp$x2, fp$y2, lwd = 2)
+  segments(fp$x1, fp$y1, fp$x2, fp$y2, lwd = 2) # Plots formations as lines showing their duration
   
-  for(n in 1:length(form_bins)){
+  for(n in 1:length(form_bins)){ # draws new bins as coloured boxes for comparison to traditional bins
     if(((n %% 2) == 0) == TRUE) next
     else {
       if(n == length(form_bins)){
@@ -277,27 +279,28 @@ FormationGraph <- function(formations, form_bins, stages){
 
 #==== FormBin_M1 ====
 # Uses the generated boundaries from Bins to assign user specified occurrences (Form_list) and formations to all bins
-# that they occur in. Produces graphs showing raw dinosaur occurrences, rock outcrop area, and DPSK through time.
+# that they occur in. Produces graphs showing raw diversity, number of collections, Good's U and SQS results at chosen
+# Quorum levels. 
 
 FormBin_M1 <- function(formations, binlist, Form_list, Quorum) {
   sqsmst <- list()
   for (q in 1:length(Quorum)){
-    M1_Dino_List <- list()# make an empty list of the dinos in each bin
+    M1_List <- list()# make an empty list of the occurrences in each bin
 
     # Code for assigning formations and associated occurrences to bins
     for(b in 1:nrow(binlist)){ # for each new bin
-      temp_dino_recs <- data.frame()
+      temp_recs <- data.frame()
       for (f in 1:nrow(formations)){ 
         if (formations$max_age[f] >= binlist[b,2] && formations$min_age[f] <= binlist[b,3]){ # If Formation max. age is greater than Bin min. age AND if Formation min. age is less then Bin max. age (i.e. falls within bin at some point)
-          temp_dino_recs <- rbind(temp_dino_recs, Form_list[[f]]) # Add dinos from that formation to dino list
+          temp_recs <- rbind(temp_recs, Form_list[[f]]) # Add occurrences from that formation to occurrence list
         }
       }
-      if (nrow(temp_dino_recs) > 0){
-        temp_dino_recs$bin_no <- b
+      if (nrow(temp_recs) > 0){
+        temp_recs$bin_no <- b
       }
-      M1_Dino_List[[b]] <- temp_dino_recs
+      M1_List[[b]] <- temp_recs
     }
-    df <- do.call("rbind", M1_Dino_List)
+    df <- do.call("rbind", M1_List)
 
     # Code for subsampling
     niter <- 100 # number of SQS iterations
@@ -410,13 +413,14 @@ FormBin_M1 <- function(formations, binlist, Form_list, Quorum) {
 #==== FormBin_M2 ====
 # Uses the generated boundaries from Bins to assign user specified occurrences (Form_list) and formations to bins that
 # the majority of the formation occurs in. Formations which have lengths greater than 2x the length of a bin are ignored.
-# Produces graphs showing raw dinosaur occurrences, rock outcrop area, and DPSK through time.
+# Produces graphs showing raw diversity, number of collections, Good's U and SQS results at chosen Quorum levels. 
+
 FormBin_M2<- function(formations, binlist, Form_list, Quorum) {
   sqsmst <- list()
   for (q in 1:length(Quorum)){
-    M2_Dino_List <- list()# make an empty list of the dinos in each bin
+    M2_List <- list()# make an empty list of the occurrencess in each bin
     for(b in 1:nrow(binlist)){ # for each new bin
-      temp_dino_recs <- data.frame()
+      temp_recs <- data.frame()
       for (f in 1:nrow(formations)) { # for each formation
         if (formations$max_age[f] < binlist[b,2] |
             binlist[b,3] < formations$min_age[f]) { # If the formation DOES NOT sit in this bin 
@@ -425,7 +429,7 @@ FormBin_M2<- function(formations, binlist, Form_list, Quorum) {
         else { # Otherwise (i.e. if a formation DOES sit in/cross this bin in any way)
           if (formations$max_age[f] <= binlist[b,3] && 
               formations$min_age[f] >= binlist[b,2]){# If formation sits within boundaries
-            temp_dino_recs <- rbind(temp_dino_recs, Form_list[[f]]) # Add dinos from that formation to dino list
+            temp_recs <- rbind(temp_recs, Form_list[[f]]) # Add occurrences from that formation to occurrence list
             next
           }
           if (formations$max_age[f] >= binlist[b,2] && 
@@ -434,7 +438,7 @@ FormBin_M2<- function(formations, binlist, Form_list, Quorum) {
             x <- as.numeric(formations$max_age[f] - as.numeric(binlist[b,2]))
             y <- as.numeric(as.numeric(binlist[b,2]) - formations$min_age[f])
             if (x > y){
-              temp_dino_recs <- rbind(temp_dino_recs, Form_list[[f]]) # Add dinos from that formation to dino list
+              temp_recs <- rbind(temp_recs, Form_list[[f]]) # Add occurrences from that formation to occurrence list
               next
             }
           }
@@ -444,23 +448,23 @@ FormBin_M2<- function(formations, binlist, Form_list, Quorum) {
             x <- as.numeric(formations$max_age[f] - as.numeric(binlist[b,3]))
             y <- as.numeric(as.numeric(binlist[b,3]) - formations$min_age[f])
             if (y > x){
-              temp_dino_recs <- rbind(temp_dino_recs, Form_list[[f]]) # Add dinos from that formation to dino list
+              temp_recs <- rbind(temp_recs, Form_list[[f]]) # Add occurrences from that formation to occurrence list
               next
             }
           }
           if (formations$max_age[f] > binlist[b,3] &&
               formations$min_age[f] < binlist[b,2]){
-            temp_dino_recs <- rbind(temp_dino_recs, Form_list[[f]]) # Add dinos from that formation to dino list
+            temp_recs <- rbind(temp_recs, Form_list[[f]]) # Add occurrences from that formation to occurrence list
             next
           }
         }
       }
-      if (nrow(temp_dino_recs) > 0){
-        temp_dino_recs$bin_no <- b
+      if (nrow(temp_recs) > 0){
+        temp_recs$bin_no <- b
       }
-      M2_Dino_List[[b]] <- temp_dino_recs
+      M2_List[[b]] <- temp_recs
     }
-    df <- do.call("rbind", M2_Dino_List)
+    df <- do.call("rbind", M2_List)
     
     # Code for subsampling
     niter <- 100 # number of SQS iterations
@@ -599,16 +603,17 @@ FormBin_M2<- function(formations, binlist, Form_list, Quorum) {
 # Uses the generated boundaries from Bins to assign user specified occurrences (Form_list) and formations to all bins
 # that they occur in, based on the percentage of the formation that sits within that bin. Occurrences are selected at
 # random from the formation list and not replaced. The test is repeated according to user specified number of runs.
-# Produces graphs showing raw dinosaur occurrences, rock outcrop area, and DPSK through time. 
+# Produces graphs showing raw diversity, number of collections, Good's U and SQS results at chosen Quorum levels. 
+
 FormBin_M3<- function(formations, binlist, Form_list, times=10, Quorum) {
   ptm <- proc.time()
   for (q in 1:length(Quorum)){
     allSQS <- data.frame(binlist$bin)
     allbininfo <- data.frame(binlist$bin)
     for(n in 1:times){
-      M3_Dino_List <- list()
+      M3_List <- list()
       for(b in 1:nrow(binlist)){ # for each new bin
-        temp_dino_recs <- data.frame() 
+        temp_recs <- data.frame() 
         for (f in 1:nrow(formations)) { # for each formation
           if (formations$max_age[f] < binlist[b,2] |
               binlist[b,3] < formations$min_age[f]) { # If the formation DOES NOT sit in this bin 
@@ -617,7 +622,7 @@ FormBin_M3<- function(formations, binlist, Form_list, times=10, Quorum) {
           else { # Otherwise (i.e. if a formation DOES sit in/cross this bin in any way)
             if (formations$max_age[f] <= binlist[b,3] && 
               formations$min_age[f] >= binlist[b,2]){ # If formation sits within boundaries
-              temp_dino_recs <- rbind(temp_dino_recs, Form_list[[f]]) # Add dinos from that formation to dino list
+              temp_recs <- rbind(temp_recs, Form_list[[f]]) # Add occurrences from that formation to occurrence list
               next
             }
             if (formations$max_age[f] >= binlist[b,2] && 
@@ -629,7 +634,7 @@ FormBin_M3<- function(formations, binlist, Form_list, times=10, Quorum) {
               ran_num <- perc*nrow(Form_list[[f]])
               temp_dframe <- Form_list[[f]]
               sampled <- temp_dframe[sample(nrow(temp_dframe), ran_num, replace = FALSE),]
-              temp_dino_recs <- rbind(temp_dino_recs, sampled) # Add dinos from that formation to dino list
+              temp_recs <- rbind(temp_recs, sampled) # Add occurrences from that formation to occurrence list
               next
             } 
             if (formations$max_age[f] >= binlist[b,3] && 
@@ -641,7 +646,7 @@ FormBin_M3<- function(formations, binlist, Form_list, times=10, Quorum) {
               ran_num <- perc*nrow(Form_list[[f]])
               temp_dframe <- Form_list[[f]]
               sampled <- temp_dframe[sample(nrow(temp_dframe), ran_num, replace = FALSE),]
-              temp_dino_recs <- rbind(temp_dino_recs, sampled) # Add dinos from that formation to dino list
+              temp_recs <- rbind(temp_recs, sampled) # Add occurrences from that formation to occurrence list
               next
             }
             if (formations$max_age[f] >= binlist[b,3] &&
@@ -652,17 +657,17 @@ FormBin_M3<- function(formations, binlist, Form_list, times=10, Quorum) {
               ran_num <- perc*nrow(Form_list[[f]])
               temp_dframe <- Form_list[[f]]
               sampled <- temp_dframe[sample(nrow(temp_dframe), ceiling(ran_num), replace = FALSE),]
-              temp_dino_recs <- rbind(temp_dino_recs, sampled) # Add dinos from that formation to dino list
+              temp_recs <- rbind(temp_recs, sampled) # Add occurrences from that formation to occurrence list
               next
             } 
           }
         }
-        if (nrow(temp_dino_recs) > 0){ # If there are occurrences in this bin
-          temp_dino_recs$bin_no <- b # Label those occurrences with bin number
+        if (nrow(temp_recs) > 0){ # If there are occurrences in this bin
+          temp_recs$bin_no <- b # Label those occurrences with bin number
         }
-        M3_Dino_List[[b]] <- temp_dino_recs # Add temp records to permanent list
+        M3_List[[b]] <- temp_recs # Add temp records to permanent list
       }
-      df <- do.call("rbind", M3_Dino_List) # Create data.frame from list
+      df <- do.call("rbind", M3_List) # Create data.frame from list
         
       # Code for subsampling, and skipping errors with little data - Not very useful here, but useful for last method. Kept in just in case.
       niter <- 100 # number of SQS iterations
