@@ -34,7 +34,7 @@ occs <- read.csv(file = "Data/NADINOS-occs-edit.csv") # Read in occurrences
 # Standard Bin setup
 data(stages)
 
-#==== Data Cleaning ====
+#===== Data Cleaning =====
 
 # Make parts Numeric
 formations$max_age <- as.numeric(as.character(formations$max_age)) # Make Numeric
@@ -57,39 +57,48 @@ formations$forbinning <- 1:nrow(formations) # Number formations for easy plottin
 
 #=============================================== RUNNING TESTS ===============================================
 
+#===== Set up =====
 Quorum <- c(0.4, 0.6, 0.8)
 bin_limits <- c(3, max(formations$max_age), 66) # Set user defined bin size
+
+#===== Bin generation and comparison =====
 Scoring_Grid_1(formations) # Generates scoring grid. Currently set to default resolution (0.01 Ma intervals)
 Scoring_Grid_2(formations)
 newBins(score_grid, formations, bin_limits, allbins, stages) # Uses the scoring grid to generate new bins.
-
 FormationGraph(formations, form_bins, stages) # Visualises the range of formations in comparison with stage level bins and new bins.
 
-### Running Methods ###
+#===== Running diversity Methods =====
 FormBin_M1(formations, binlist, Form_list, Quorum) # Generates formation binned plots of diversity, sampling proxies and SQS results using an inclusive model
 FormBin_M2(formations, binlist, Form_list, Quorum) # Generates formation binned plots of diversity, sampling proxies and SQS results using an exclusive model
 FormBin_M3(formations, binlist, Form_list, times = 100, Quorum) # Generates plots of diversity, sampling proxies and SQS results using a representative model. 
 # Must be run 2 times or more. At high times of times, might take a while!
 
-# Testing Resolution
+#===== Testing Resolution =====
 
-Scoring_Grid_1(formations, res=0.05)
+# 3 Ma resolution
+Scoring_Grid_1(formations)
+bin_limits <- c(3, max(formations$max_age), 66)
 newBins(score_grid, formations, bin_limits, allbins, stages)
 
-Scoring_Grid_1(formations, res=0.1)
+Scoring_Grid_2(formations)
+bin_limits <- c(3, max(formations$max_age), 66)
 newBins(score_grid, formations, bin_limits, allbins, stages)
 
-Scoring_Grid_1(formations, res=0.5)
+# 2 Ma resolution
+Scoring_Grid_1(formations)
+bin_limits <- c(2, max(formations$max_age), 66)
 newBins(score_grid, formations, bin_limits, allbins, stages)
 
-Scoring_Grid_1(formations, res=1)
+Scoring_Grid_2(formations)
+bin_limits <- c(2, max(formations$max_age), 66)
 newBins(score_grid, formations, bin_limits, allbins, stages)
 
-# Comparing Scoring Grid Methods
-Scoring_Grid_1(formations, res=0.5)
-newBins(score_grid, formations, bin_limits, bins, stages)
-FormationGraph(formations, newbins_test, stages)
+# 4 Ma resolution
+Scoring_Grid_1(formations)
+bin_limits <- c(4, max(formations$max_age), 66)
+newBins(score_grid, formations, bin_limits, allbins, stages)
 
-Scoring_Grid2(formations, res=0.5)
-newBins(score_grid, formations, bin_limits, bins, stages)
-FormationGraph(formations, newbins_test, stages)
+Scoring_Grid_2(formations)
+bin_limits <- c(4, max(formations$max_age), 66)
+newBins(score_grid, formations, bin_limits, allbins, stages)
+
