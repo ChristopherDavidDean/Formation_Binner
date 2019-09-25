@@ -2,7 +2,7 @@
 #================================== FORMATION BINNER - DINOSAURS OF NORTH AMERICA =================================================
 #==================================================================================================================================
 
-# Christopher D. Dean & Susannah Maidment
+# Christopher D. Dean, Alfio A. Chiarenza & Susannah Maidment
 # 2019
 
 #================================================ DATA SETUP ======================================================================
@@ -62,7 +62,7 @@ Quorum <- c(0.4, 0.6, 0.8)
 bin_limits <- c(3, max(formations$max_age), 66) # Set user defined bin size
 
 #===== Bin generation and comparison =====
-Scoring_Grid_1(formations) # Generates scoring grid. Currently set to default resolution (0.01 Ma intervals)
+Scoring_Grid_1(formations) # Generates scoring grid. Currently set to default resolution (0.01 Ma intervals). Choose either Score_Grid_1 or 2 (find out more in Functions File)
 Scoring_Grid_2(formations)
 newBins(score_grid, formations, bin_limits, allbins, stages) # Uses the scoring grid to generate new bins.
 FormationGraph(formations, form_bins, stages) # Visualises the range of formations in comparison with stage level bins and new bins.
@@ -79,32 +79,37 @@ FormBin_M3(formations, binlist, Form_list, times = 100, Quorum) # Generates plot
 Scoring_Grid_1(formations)
 bin_limits <- c(3, max(formations$max_age), 66)
 newBins(score_grid, formations, bin_limits, allbins, stages)
+FormationGraph(formations, form_bins, stages)
 FormBin_M2(formations, binlist, Form_list, Quorum)
 
 Scoring_Grid_2(formations)
 bin_limits <- c(3, max(formations$max_age), 66)
 newBins(score_grid, formations, bin_limits, allbins, stages)
+FormationGraph(formations, form_bins, stages)
 FormBin_M2(formations, binlist, Form_list, Quorum)
 
 # 2 Ma resolution
 Scoring_Grid_1(formations)
 bin_limits <- c(2, max(formations$max_age), 66)
 newBins(score_grid, formations, bin_limits, allbins, stages)
+FormationGraph(formations, form_bins, stages)
 FormBin_M2(formations, binlist, Form_list, Quorum)
 
 Scoring_Grid_2(formations)
 bin_limits <- c(2, max(formations$max_age), 66)
 newBins(score_grid, formations, bin_limits, allbins, stages)
+FormationGraph(formations, form_bins, stages)
 FormBin_M2(formations, binlist, Form_list, Quorum)
 
 # 4 Ma resolution
 Scoring_Grid_1(formations)
 bin_limits <- c(4, max(formations$max_age), 66)
 newBins(score_grid, formations, bin_limits, allbins, stages)
+FormationGraph(formations, form_bins, stages)
 FormBin_M2(formations, binlist, Form_list, Quorum)
 
 Scoring_Grid_2(formations)
 bin_limits <- c(4, max(formations$max_age), 66)
 newBins(score_grid, formations, bin_limits, allbins, stages)
+FormationGraph(formations, form_bins, stages)
 FormBin_M2(formations, binlist, Form_list, Quorum)
-
