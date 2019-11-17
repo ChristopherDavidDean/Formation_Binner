@@ -155,13 +155,29 @@ plotMaker <- function(rel_data, binlist, ulabel){ # Takes relevant data for plot
   lines(binlist$mid, rel_data, type = "o", pch = 21, col = "black", bg = "grey", lwd = 1) # Adds lines from relevant data provided.
 }
 
+#=============================================== OVERLAP_COUNTER ==============================================================
+
+# Generates a quick high resolution plot of the number of formations present through geologic time. 
+
+overlap_counter <- function(score_grid){ # Takes score_grid as input, generated from either Scoring_Grid_1 or Scoring_Grid_2 functions. 
+  score_grid[score_grid < 100] <- 1 # Turn all score less than 100 (i.e. formation exists at that point) into 1's
+  score_grid[score_grid == 100] <- 0 # Turn all scores of 100 (no formation present) into 0's
+  total_forms <- colSums(score_grid) # Sum the number of formations occurring in each bin
+  par(mar = c(4.1, 4.1, 1, 2.1))
+   tsplot(stages, boxes=c("short","system"), # Generates plot using DivDyn package
+         xlim=75:81,  ylim=c(min(colMeans(score_grid), na.rm = TRUE), max(total_forms)+1), 
+         shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75),
+         ylab = "Number of Formations") 
+  lines(allbins, total_forms)
+}
+
 #=============================================== NEWBINS ==============================================================
 
 # Looks at the previously generated score_grid and generates appropriate new bins based on those scores. Boundaries are 
 # outputted as a list (binlist). If bins are shorter than 0.5 Ma, they are amalgamated into the bins above and below, and 
 # a warning is produced.
 
-newBins <- function(score_grid, formations, bin_limits, allbins, stages){ # Takes previously generated score grid, formations, 
+newBins <- function(score_grid, formations, bin_limits, allbins, stages, smallamalg = TRUE){ # Takes previously generated score grid, formations, 
   # allbins and stages from DivDyn package. Also require bin_limits, a user made vector of the following: 
   # 1) user chosen time window in which to look to draw bins. Advised to be set at 3 Ma. 
   # 2) Hard maximum age of bins
@@ -188,19 +204,24 @@ newBins <- function(score_grid, formations, bin_limits, allbins, stages){ # Take
     form_bins[i+1] <- names(a)[z][nrow(a)] # Adds maximum bin score to a vector of bins
   }
   form_bins <- as.numeric(unique(form_bins)) # Finds all unique bins
-  range <- (diff(form_bins) < 0.5) # Finds all bins which are under 0.5 Ma in length
-  range_checker <- c()
-  for (r in 1:length(range)){
-    if (range[r] == TRUE){ # If a bin is under 0.5 Ma in length
-      difference <- diff(c(form_bins[r], form_bins[r+1])) # Find the length of that bin
-      warning("Original bin ",  r, " removed due to small range: ~", signif(difference, digits = 3), " Ma. The difference in time has been added to the bins above and below.") # Generate warning about bin amalgamation
-      form_bins[r] <- form_bins[r]+(difference/2) # Adds half length of old bin to bin below
-      form_bins[r+1] <- form_bins[r+1]-(difference/2) # Adds half length of old bin to bin above
-      range_checker <- c(range_checker, r) # Records which bin was too small
+  if (smallamalg == TRUE){ # If small bin amalgamation is turned on (is on automatically):
+    range <- (diff(form_bins) < 0.5) # Finds all bins which are under 0.5 Ma in length
+    range_checker <- c()
+    for (r in 1:length(range)){
+      if (range[r] == TRUE){ # If a bin is under 0.5 Ma in length
+        difference <- diff(c(form_bins[r], form_bins[r+1])) # Find the length of that bin
+        warning("Original bin ",  r, " removed due to small range: ~", signif(difference, digits = 3), " Ma. The difference in time has been added to the bins above and below.") # Generate warning about bin amalgamation
+        form_bins[r] <- form_bins[r]+(difference/2) # Adds half length of old bin to bin below
+        form_bins[r+1] <- form_bins[r+1]-(difference/2) # Adds half length of old bin to bin above
+        range_checker <- c(range_checker, r) # Records which bin was too small
+      }
+    }
+    if(length(range_checker) > 0){ # If there have been amalgamated bins
+      form_bins <- form_bins[-range_checker] # Remove old amalgamated bins
     }
   }
-  if(length(range_checker) > 0){ # If there have been amalgamated bins
-    form_bins <- form_bins[-range_checker] # Remove old amalgamated bins
+  if (smallamalg == FALSE){
+    warning("Small bin amalgamation is turned off. Bins may be too short to record occurrences. You are advised to check bins before running further analyses.") # Generate warning if small bin amalgamation is turned off. 
   }
   form_bins <<- form_bins
   
