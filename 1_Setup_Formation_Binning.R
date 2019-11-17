@@ -64,7 +64,7 @@ bin_limits <- c(3, max(formations$max_age), 66) # Set user defined bin size
 #===== Bin generation and comparison =====
 Scoring_Grid_1(formations) # Generates scoring grid. Currently set to default resolution (0.01 Ma intervals). Choose either Score_Grid_1 or 2 (find out more in Functions File)
 Scoring_Grid_2(formations)
-newBins(score_grid, formations, bin_limits, allbins, stages) # Uses the scoring grid to generate new bins.
+newBins(score_grid, formations, bin_limits, allbins, stages, smallamalg = TRUE) # Uses the scoring grid to generate new bins.
 FormationGraph(formations, form_bins, stages) # Visualises the range of formations in comparison with stage level bins and new bins.
 
 #===== Running diversity Methods =====
