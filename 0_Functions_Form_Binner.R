@@ -265,15 +265,68 @@ newBins <- function(score_grid, formations, bin_limits, allbins, stages, smallam
 #=============================================== FORMATIONGRAPH =======================================================
 
 # Shows what formations look like through time in comparison to Stages and new Bins.
-FormationGraph <- function(formations, form_bins, stages){ # Requires formations, form_bins from newBins function and stages from DivDyn package
-  fp <- data.frame("x1" = formations$min_age, "y1" = formations$forbinning, 'x2' = formations$max_age, 'y2' = formations$forbinning)
+# Requires formations, form_bins from newBins function and stages from DivDyn package
+FormationGraph <- function(formations, form_bins, stages, score_grid_2 = FALSE, draw_by = "Lat"){ # Requires formations, form_bins from newBins function and stages from DivDyn package
+  TYPE <- c("Lat", "Max_Age", "Number")
+  if (is.na(pmatch(draw_by, TYPE))){
+    stop("Invalid method. Choose either 'Lat', 'Max_Age', or 'Number'.")
+  }
+  fp1 <- data.frame(matrix(ncol = 4, nrow = 0))
+  fplong <- data.frame(matrix(ncol = 4, nrow = 0))
+  for (f in 1:nrow(formations)){
+    if (formations$max_age[f] - formations$min_age[f] > # If formation range is less than the mean formation range
+        mean(formations$max_age - formations$min_age)) {
+      if (draw_by == "Lat"){
+        fplong <- rbind(fplong, c(formations$min_age[f], formations$Mean_Lat[f], formations$max_age[f], formations$Mean_Lat[f]))
+      }
+      if (draw_by == "Max_Age"){
+        fplong <- rbind(fplong, c(formations$min_age[f], formations$max_age[f], formations$max_age[f], formations$max_age[f]))
+      }
+      if (draw_by == "Number"){
+        fplong <- rbind(fplong, c(formations$min_age[f], formations$forbinning[f], formations$max_age[f], formations$forbinning[f]))
+      }
+    }
+    else{
+      if(draw_by == "Lat"){
+        fp1 <- rbind(fp1, c(formations$min_age[f], formations$Mean_Lat[f], formations$max_age[f], formations$Mean_Lat[f]))
+      }
+      if(draw_by == "Max_Age"){
+        fp1 <- rbind(fp1, c(formations$min_age[f], formations$max_age[f], formations$max_age[f], formations$max_age[f]))
+      }
+      if(draw_by == "Number")
+        fp1 <- rbind(fp1, c(formations$min_age[f], formations$forbinning[f], formations$max_age[f], formations$forbinning[f]))
+    }
+  }
+  names <- c("x1", "y1", "x2", "y2")
+  colnames(fp1) <- names
+  colnames(fplong) <- names
+  fp <- rbind(fp1, fplong)
   par(mar = c(4.1, 4.1, 1, 2.1))
-  tsplot(stages, boxes=c("short","system"), # Generates plot using Divdyn package
-         xlim=75:81,  ylim=range(fp$y1, fp$y2), 
-         shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75),
-         ylab = "Formations by Number")
-  segments(fp$x1, fp$y1, fp$x2, fp$y2, lwd = 2) # Plots formations as lines showing their duration
-  
+  if (draw_by == "Lat"){
+    tsplot(stages, boxes=c("short","system"), # Generates plot using Divdyn package
+           xlim=75:81,  ylim=range(fp$y1 - 1, fp$y2 + 1), 
+           shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75),
+           ylab = "Formations by mean occurrence latitude")
+  }
+  if (draw_by == "Max_Age"){
+    tsplot(stages, boxes=c("short","system"), # Generates plot using Divdyn package
+           xlim=75:81,  ylim=range(fp$y1 - 1, fp$y2 + 1), 
+           shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75),
+           ylab = "Formations by Maximum Age")
+  }
+  if (draw_by == "Number"){
+    tsplot(stages, boxes=c("short","system"), # Generates plot using Divdyn package
+           xlim=75:81,  ylim=range(fp$y1 - 1, fp$y2 + 1), 
+           shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75),
+           ylab = "Formations (Number order)")
+  }
+  if (score_grid_2 == TRUE){
+    segments(fplong$x1, fplong$y1, fplong$x2, fplong$y2, lwd = 2, col = "grey") # Plots formations as lines showing their duration
+    segments(fp1$x1, fp1$y1, fp1$x2, fp1$y2, lwd = 2) 
+  }
+  else{
+    segments(fp$x1, fp$y1, fp$x2, fp$y2, lwd = 2)
+  }
   for(n in 1:length(form_bins)){ # draws new bins as coloured boxes for comparison to traditional bins
     if(((n %% 2) == 0) == TRUE) next
     else {
@@ -283,16 +336,17 @@ FormationGraph <- function(formations, form_bins, stages){ # Requires formations
         }
         else{
           rect(useful_bins[n], 0, useful_bins[n-1], 
-          max(fp$y2, na.rm = TRUE), col = "#32323232", border = NA)
+               max(fp$y2+1, na.rm = TRUE), col = "#32323232", border = NA)
         }
       }
       else{
         rect(form_bins[n], 0, form_bins[n+1], 
-        max(fp$y2, na.rm = TRUE), col = "#32323232", border = NA)
+             max(fp$y2+1, na.rm = TRUE), col = "#32323232", border = NA)
       }
     }
   }
 }
+
 
 #=============================================== DIVERSITY METHODS ====================================================
 
@@ -322,7 +376,7 @@ FormBin_M1 <- function(formations, binlist, Form_list, Quorum) {
       M1_List[[b]] <- temp_recs
     }
     df <- do.call("rbind", M1_List)
-
+    
     # Code for subsampling
     niter <- 100 # number of SQS iterations
     SQS <- subsample(df,iter=100, q=Quorum[q],tax="occurrence.genus_name", bin="bin_no", 
