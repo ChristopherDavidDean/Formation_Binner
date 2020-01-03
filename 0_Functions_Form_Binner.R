@@ -130,7 +130,7 @@ Scoring_Grid_2 <- function(formations, res=0.01) { # Requires formation informat
 plotMaker <- function(rel_data, binlist, ulabel){ # Takes relevant data for plotting, binlist(dataframe of bins) and a user generated level for y axis. 
   useful_bins <- c(binlist$bottom, binlist$top[nrow(binlist)]) # Converts binlist into format useful for plotting
   tsplot(stages, boxes=c("short","system"), ylab = ulabel, # Creates plot using data from DivDyn package. 
-         xlim=75:81,  ylim=c(0,(max(rel_data, na.rm = TRUE)+(max(rel_data, na.rm = TRUE)*0.1))), 
+         xlim=1:nrow(stages),  ylim=c(0,(max(rel_data, na.rm = TRUE)+(max(rel_data, na.rm = TRUE)*0.1))), 
          shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75))  
   for(n in 1:length(useful_bins)){ # For each bin
     if(((n %% 2) == 0) == TRUE) next # If the bin is even, skip it (allows for alternating colours of bins)
@@ -165,7 +165,7 @@ overlap_counter <- function(score_grid){ # Takes score_grid as input, generated 
   total_forms <- colSums(score_grid) # Sum the number of formations occurring in each bin
   par(mar = c(4.1, 4.1, 1, 2.1))
    tsplot(stages, boxes=c("short","system"), # Generates plot using DivDyn package
-         xlim=75:81,  ylim=c(min(colMeans(score_grid), na.rm = TRUE), max(total_forms)+1), 
+         xlim=1:nrow(stages),  ylim=c(min(colMeans(score_grid), na.rm = TRUE), max(total_forms)+1), 
          shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75),
          ylab = "Number of Formations") 
   lines(allbins, total_forms)
@@ -238,7 +238,7 @@ newBins <- function(score_grid, formations, bin_limits, allbins, stages, smallam
   #Plotting new bins
   par(mar = c(4.1, 4.1, 1, 2.1))
   tsplot(stages, boxes=c("short","system"), # Generates plot using DivDyn package
-         xlim=75:81,  ylim=c(min(colMeans(score_grid), na.rm = TRUE), 100), 
+         xlim=1:nrow(stages),  ylim=c(min(colMeans(score_grid), na.rm = TRUE), 100), 
          shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75),
          ylab = "Bin Splitting Score") 
   lines(allbins, colMeans(score_grid)) # draws bin splitting score on plot
@@ -266,84 +266,133 @@ newBins <- function(score_grid, formations, bin_limits, allbins, stages, smallam
 
 # Shows what formations look like through time in comparison to Stages and new Bins.
 # Requires formations, form_bins from newBins function and stages from DivDyn package
-FormationGraph <- function(formations, form_bins, stages, score_grid_2 = FALSE, draw_by = "Lat"){ # Requires formations, form_bins from newBins function and stages from DivDyn package
+FormationGraph <- function(formations, form_bins, stages, score_grid_2 = FALSE, draw_by = "Lat", divcol = TRUE, legend = TRUE, STAGE = FALSE){ # Requires formations, form_bins from newBins function and stages from DivDyn package
   TYPE <- c("Lat", "Max_Age", "Number")
   if (is.na(pmatch(draw_by, TYPE))){
     stop("Invalid method. Choose either 'Lat', 'Max_Age', or 'Number'.")
   }
-  fp1 <- data.frame(matrix(ncol = 4, nrow = 0))
-  fplong <- data.frame(matrix(ncol = 4, nrow = 0))
+  fp1 <- data.frame(matrix(ncol = 5, nrow = 0))
+  fplong <- data.frame(matrix(ncol = 5, nrow = 0))
   for (f in 1:nrow(formations)){
     if (formations$max_age[f] - formations$min_age[f] > # If formation range is less than the mean formation range
         mean(formations$max_age - formations$min_age)) {
       if (draw_by == "Lat"){
-        fplong <- rbind(fplong, c(formations$min_age[f], formations$Mean_Lat[f], formations$max_age[f], formations$Mean_Lat[f]))
+        fplong <- rbind(fplong, c(formations$min_age[f], formations$Mean_Lat[f], formations$max_age[f], formations$Mean_Lat[f], formations$Diversity[f]))
       }
       if (draw_by == "Max_Age"){
-        fplong <- rbind(fplong, c(formations$min_age[f], formations$max_age[f], formations$max_age[f], formations$max_age[f]))
+        fplong <- rbind(fplong, c(formations$min_age[f], formations$max_age[f], formations$max_age[f], formations$max_age[f], formations$Diversity[f]))
       }
       if (draw_by == "Number"){
-        fplong <- rbind(fplong, c(formations$min_age[f], formations$forbinning[f], formations$max_age[f], formations$forbinning[f]))
+        fplong <- rbind(fplong, c(formations$min_age[f], formations$forbinning[f], formations$max_age[f], formations$forbinning[f], formations$Diversity[f]))
       }
     }
     else{
       if(draw_by == "Lat"){
-        fp1 <- rbind(fp1, c(formations$min_age[f], formations$Mean_Lat[f], formations$max_age[f], formations$Mean_Lat[f]))
+        fp1 <- rbind(fp1, c(formations$min_age[f], formations$Mean_Lat[f], formations$max_age[f], formations$Mean_Lat[f], formations$Diversity[f]))
       }
       if(draw_by == "Max_Age"){
-        fp1 <- rbind(fp1, c(formations$min_age[f], formations$max_age[f], formations$max_age[f], formations$max_age[f]))
+        fp1 <- rbind(fp1, c(formations$min_age[f], formations$max_age[f], formations$max_age[f], formations$max_age[f], formations$Diversity[f]))
       }
       if(draw_by == "Number")
-        fp1 <- rbind(fp1, c(formations$min_age[f], formations$forbinning[f], formations$max_age[f], formations$forbinning[f]))
+        fp1 <- rbind(fp1, c(formations$min_age[f], formations$forbinning[f], formations$max_age[f], formations$forbinning[f], formations$Diversity[f]))
     }
   }
-  names <- c("x1", "y1", "x2", "y2")
+  names <- c("x1", "y1", "x2", "y2", "Diversity")
   colnames(fp1) <- names
   colnames(fplong) <- names
   fp <- rbind(fp1, fplong)
-  par(mar = c(4.1, 4.1, 1, 2.1))
+  layout(matrix(1:1,nrow=1), widths=c(1,1), height = c(1,1))
+  if(divcol == TRUE){
+    cols <- brewer.pal(5, "Reds")
+    colramp <- colorRampPalette(cols)
+    fp$Col <- colramp(5)[as.numeric(cut(fp$Diversity,breaks = 5))]
+    if (legend == TRUE){
+      layout(matrix(1:2,nrow=1), widths=c(0.85,0.15), heights = c(1,1))
+    }
+  }
+  par(mar = c(4.1, 4.1, 1, 1))
   if (draw_by == "Lat"){
     tsplot(stages, boxes=c("short","system"), # Generates plot using Divdyn package
-           xlim=75:81,  ylim=range(fp$y1 - 1, fp$y2 + 1), 
+           xlim=1:nrow(stages),  ylim=range(fp$y1 - 1, fp$y2 + 1), 
            shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75),
            ylab = "Formations by mean occurrence latitude")
   }
   if (draw_by == "Max_Age"){
     tsplot(stages, boxes=c("short","system"), # Generates plot using Divdyn package
-           xlim=75:81,  ylim=range(fp$y1 - 1, fp$y2 + 1), 
+           xlim=1:nrow(stages),  ylim=range(fp$y1 - 1, fp$y2 + 1), 
            shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75),
            ylab = "Formations by Maximum Age")
   }
   if (draw_by == "Number"){
     tsplot(stages, boxes=c("short","system"), # Generates plot using Divdyn package
-           xlim=75:81,  ylim=range(fp$y1 - 1, fp$y2 + 1), 
+           xlim=1:nrow(stages),  ylim=range(fp$y1 - 1, fp$y2 + 1), 
            shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75),
            ylab = "Formations (Number order)")
   }
-  if (score_grid_2 == TRUE){
-    segments(fplong$x1, fplong$y1, fplong$x2, fplong$y2, lwd = 2, col = "grey") # Plots formations as lines showing their duration
-    segments(fp1$x1, fp1$y1, fp1$x2, fp1$y2, lwd = 2) 
-  }
-  else{
-    segments(fp$x1, fp$y1, fp$x2, fp$y2, lwd = 2)
-  }
-  for(n in 1:length(form_bins)){ # draws new bins as coloured boxes for comparison to traditional bins
-    if(((n %% 2) == 0) == TRUE) next
-    else {
-      if(n == length(form_bins)){
-        if(nrow(binlist) %% 2 == 0){
-          next
+  if(STAGE == TRUE){
+    for(n in 1:nrow(stages)){ # draws new bins as coloured boxes for comparison to traditional bins
+      if(((n %% 2) == 0) == TRUE) next
+      else {
+        if(n == 7){
+          if(nrow(binlist) %% 2 == 0){
+            next
+          }
+          else{
+            rect(stages$top[max(nrow(stages))], 0, stages$bottom[max(nrow(stages))], 
+                 max(fp$y2+1, na.rm = TRUE), col = "#32323232", border = NA)
+          }
         }
         else{
-          rect(useful_bins[n], 0, useful_bins[n-1], 
+          rect(stages$top[n], 0, stages$bottom[n], 
                max(fp$y2+1, na.rm = TRUE), col = "#32323232", border = NA)
         }
       }
-      else{
-        rect(form_bins[n], 0, form_bins[n+1], 
-             max(fp$y2+1, na.rm = TRUE), col = "#32323232", border = NA)
+    }
+  }
+  else{
+    for(n in 1:length(form_bins)){ # draws new bins as coloured boxes for comparison to traditional bins
+      if(((n %% 2) == 0) == TRUE) next
+      else {
+        if(n == length(form_bins)){
+          if(nrow(binlist) %% 2 == 0){
+            next
+          }
+          else{
+            rect(useful_bins[n], 0, useful_bins[n-1], 
+                 max(fp$y2+1, na.rm = TRUE), col = "#32323232", border = NA)
+          }
+        }
+        else{
+          rect(form_bins[n], 0, form_bins[n+1], 
+               max(fp$y2+1, na.rm = TRUE), col = "#32323232", border = NA)
+        }
       }
     }
+  }
+  if (score_grid_2 == TRUE){
+    segments(fplong$x1, fplong$y1, fplong$x2, fplong$y2, lwd = 2, col = "grey") # Plots formations as lines showing their duration
+    if (divcol == TRUE){
+      segments(fp1$x1, fp1$y1, fp1$x2, fp1$y2, lwd = 2, col = fp$Col) 
+    }
+    else{
+      segments(fp1$x1, fp1$y1, fp1$x2, fp1$y2, lwd = 2) 
+    }
+  }
+  else{
+    if (divcol == TRUE){
+      segments(fp$x1, fp$y1, fp$x2, fp$y2, lwd = 2, col = fp$Col) 
+    }
+    else{
+      segments(fp$x1, fp$y1, fp$x2, fp$y2, lwd = 2) 
+    }
+  }
+  if (divcol == TRUE && legend == TRUE){
+    par(mar = c(4.1, 0.5, 1, 0))
+    legend_image <- as.raster(matrix(rev(colramp(5)), ncol=1))
+    plot(c(0,4),c(0,1),type = 'n', axes = F, xlab = '', ylab = '')
+    title("Diversity", cex.main = 0.9, line = -5, adj = 0)
+    text(x=1.1, y = seq(0.25,0.75,l=5), cex = 0.9, labels = round(seq(0,max(fp$Diversity),l=5)))
+    rasterImage(legend_image, 0, 0.25, 0.5, 0.75)
   }
 }
 
@@ -419,7 +468,7 @@ FormBin_M1 <- function(formations, binlist, Form_list, Quorum) {
   layout(matrix(1:2, ncol = 1), widths = 1, heights = c(2,2), respect = FALSE)
   par(mar = c(0, 4.1, 4.1, 2.1))
   with(binlist, tsplot(stages, ylab = "Raw Diversity",
-              xlim=75:81,  ylim=c(0,(max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1))), 
+              xlim=1:nrow(stages),  ylim=c(0,(max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1))), 
               shading=NULL, plot.args=list(xaxt = 'n')))
   useful_bins <- c(binlist$bottom, binlist$top[nrow(binlist)])
   for(n in 1:length(useful_bins)){
@@ -451,7 +500,7 @@ FormBin_M1 <- function(formations, binlist, Form_list, Quorum) {
   
   # Plotting SQS
   tsplot(stages, boxes=c("short","system"), 
-         xlim=75:81,  ylim=c(0,(max(sqsmst[length(sqsmst)][[1]][1])+(max(sqsmst[length(sqsmst)][[1]][1])*0.1))), 
+         xlim=1:nrow(stages),  ylim=c(0,(max(sqsmst[length(sqsmst)][[1]][1])+(max(sqsmst[length(sqsmst)][[1]][1])*0.1))), 
          shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75),
          ylab = "Subsampled Diversity")  
   for (q in 1:length(Quorum)){
@@ -592,7 +641,7 @@ FormBin_M2<- function(formations, binlist, Form_list, Quorum) {
   layout(matrix(1:2, ncol = 1), widths = 1, heights = c(2,2), respect = FALSE)
   par(mar = c(0, 4.1, 4.1, 2.1))
   with(binlist, tsplot(stages, ylab = "Raw Diversity",
-              xlim=75:81,  ylim=c(0,(max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1))), 
+              xlim=1:nrow(stages),  ylim=c(0,(max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1))), 
               shading=NULL, plot.args=list(xaxt = 'n')))
   useful_bins <- c(binlist$bottom, binlist$top[nrow(binlist)])
   for(n in 1:length(useful_bins)){
@@ -624,7 +673,7 @@ FormBin_M2<- function(formations, binlist, Form_list, Quorum) {
   
   # Plotting SQS
   tsplot(stages, boxes=c("short","system"), 
-         xlim=75:81,  ylim=c(0,(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+
+         xlim=1:nrow(stages),  ylim=c(0,(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+
                                   (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1))), 
          shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75),
          ylab = "Subsampled Diversity")  
@@ -830,7 +879,7 @@ FormBin_M3<- function(formations, binlist, Form_list, times=10, Quorum) {
   layout(matrix(1:2, ncol = 1), widths = 1, heights = c(2,2), respect = FALSE)
   par(mar = c(0, 4.1, 4.1, 2.1))
   with(binlist, tsplot(stages, ylab = "Raw Diversity",
-              xlim=75:81,  ylim=c(0,(max(combined.bin_info[["divaveraged"]], na.rm = TRUE)
+              xlim=1:nrow(stages),  ylim=c(0,(max(combined.bin_info[["divaveraged"]], na.rm = TRUE)
               +(max(combined.bin_info[["divaveraged"]], na.rm = TRUE)*0.1))), 
               shading=NULL, plot.args=list(xaxt = 'n')))
   useful_bins <- c(binlist$bottom, binlist$top[nrow(binlist)])
@@ -863,7 +912,7 @@ FormBin_M3<- function(formations, binlist, Form_list, times=10, Quorum) {
   
   # Plotting SQS
   tsplot(stages, boxes=c("short","system"), 
-         xlim=75:81,  ylim=c(0,(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+
+         xlim=1:nrow(stages),  ylim=c(0,(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+
                                   (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1))), 
          shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75),
          ylab = "Subsampled Diversity")  
