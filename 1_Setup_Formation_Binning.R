@@ -14,25 +14,29 @@ setwd("C:/Users/deancd/Documents/RESEARCH/PROJECTS/FRM_BIN/Formation_Binner/Form
 source("0_Functions_Form_Binner.R") # Import functions from other R file (must be in same working directory)
 
 # Make vector of package names
-packages <- c("pbmcapply", "dpylr", "tidyverse", "divDyn", "rowr", "matrixStats", "bleepr")
+packages <- c("pbapply", "dpylr", "tidyverse", "divDyn", "rowr", "matrixStats", "bleepr", "iNEXT", "reshape2", "RColorBrewer")
 
 # Install packages
 ipak(packages)
 
-library(pbmcapply)
+library(pbapply)
 library(dplyr)
 library(tidyverse)
 library(divDyn)
 library(rowr)
 library(matrixStats)
 library(beepr)
+library(iNEXT)
+library(reshape2)
+library(RColorBrewer)
 
 # Data input
 formations <- read.csv (file = "Data/Formations_test2.csv")  #Read in formations
 occs <- read.csv(file = "Data/NADINOS-occs-edit.csv") # Read in occurrences
 
-# Standard Bin setup
+# Standard Bin setup - trim to fit relevant time frame. 
 data(stages)
+stages <- stages[75:81,] # Set stages to range from Albian to Maastrichtian
 
 #===== Data Cleaning =====
 
@@ -55,6 +59,15 @@ Form_list <- split(testoccs, testoccs$formation) # Makes inputted occ data into 
 formations <- formations[order(formations$Formation),] # Reorganise formations
 formations$forbinning <- 1:nrow(formations) # Number formations for easy plotting later
 
+# Add mean occurrence latitude and raw diversity per formation
+formations <- occs %>% 
+  rename(Formation = formation) %>%
+  group_by(Formation) %>%
+  dplyr::summarize(Mean_Lat = mean(latdec, na.rm = TRUE),
+                   Diversity = n_distinct(occurrence.genus_name)) %>%
+  inner_join(formations, by = "Formation")
+
+
 #=============================================== RUNNING TESTS ===================================================================
 
 #===== Set up =====
@@ -66,7 +79,8 @@ Scoring_Grid_1(formations) # Generates scoring grid. Currently set to default re
 Scoring_Grid_2(formations)
 newBins(score_grid, formations, bin_limits, allbins, stages, smallamalg = TRUE) # Uses the scoring grid to generate new bins.
 overlap_counter(score_grid)
-FormationGraph(formations, form_bins, stages) # Visualises the range of formations in comparison with stage level bins and new bins.
+FormationGraph(formations, form_bins, stages, score_grid_2 = FALSE, 
+               draw_by = "Lat", divcol = TRUE, legend = TRUE, STAGE = TRUE) # Visualises the range of formations in comparison with stage level bins and new bins.
 
 #===== Running diversity Methods =====
 FormBin_M1(formations, binlist, Form_list, Quorum) # Generates formation binned plots of diversity, sampling proxies and SQS results using an inclusive model
