@@ -733,7 +733,8 @@ FormBin_M2<- function(formations, binlist, Form_list, Quorum) {
 # random from the formation list and not replaced. The test is repeated according to user specified number of runs.
 # Produces graphs showing raw diversity, number of collections, Good's U and SQS results at chosen Quorum levels. 
 
-FormBin_M3<- function(formations, binlist, Form_list, times=10, Quorum) {
+FormBin_M3<- function(formations, binlist, F
+                      orm_list, times=10, Quorum, run_SQS = TRUE) {
   ptm <- proc.time()
   for (q in 1:length(Quorum)){
     allSQS <- data.frame(binlist$bin)
@@ -797,29 +798,30 @@ FormBin_M3<- function(formations, binlist, Form_list, times=10, Quorum) {
       }
       df <- do.call("rbind", M3_List) # Create data.frame from list
         
-      # Code for subsampling, and skipping errors with little data - Not very useful here, but useful for last method. Kept in just in case.
-      niter <- 100 # number of SQS iterations
-      SQS_test <- try(subsample(df,iter=niter, q=Quorum[q],tax="occurrence.genus_name", bin="bin_no", 
-                         coll = 'collection_no', output="dist", type="sqs", 
-                         duplicates = TRUE, useFailed = TRUE), silent = TRUE)
-      if(class(SQS_test)=='try-error'){
-        sqsaverage <- rep(NA, nrow(binlist))
-        allSQS <- cbind.data.frame(allSQS, sqsaverage)
-        next
-      }
-      else{
-        SQS <- subsample(df,iter=100, q=Quorum[q],tax="occurrence.genus_name", bin="bin_no", 
+      if (run_SQS == TRUE){
+        # Code for subsampling, and skipping errors with little data - Not very useful here, but useful for last method. Kept in just in case.
+        SQS_test <- try(subsample(df,iter=niter, q=Quorum[q],tax="occurrence.genus_name", bin="bin_no", 
                            coll = 'collection_no', output="dist", type="sqs", 
-                           duplicates = TRUE, useFailed = TRUE)
+                           duplicates = TRUE, useFailed = TRUE), silent = TRUE)
+        if(class(SQS_test)=='try-error'){
+          sqsaverage <- rep(NA, nrow(binlist))
+          allSQS <- cbind.data.frame(allSQS, sqsaverage)
+          next
+        }
+        else{
+          SQS <- subsample(df,iter=100, q=Quorum[q],tax="occurrence.genus_name", bin="bin_no", 
+                             coll = 'collection_no', output="dist", type="sqs", 
+                             duplicates = TRUE, useFailed = TRUE)
+        }
+    
+        SQS$divSIB[SQS$divSIB == 0] <- NA
+        while (nrow(SQS$divSIB) < nrow(binlist) ){ # If last bin has failed
+          SQS$divSIB <- rbind(SQS$divSIB, rep(NA, 100)) # Add additional row of NA's for that bin. Temporary solution - need to match to ensure that 
+        }
+        sqsaverage <- rowMeans2(SQS$divSIB, na.rm = TRUE)
+        
+        allSQS <- cbind(allSQS, sqsaverage)
       }
-  
-      SQS$divSIB[SQS$divSIB == 0] <- NA
-      while (nrow(SQS$divSIB) < nrow(binlist) ){ # If last bin has failed
-        SQS$divSIB <- rbind(SQS$divSIB, rep(NA, 100)) # Add additional row of NA's for that bin. Temporary solution - need to match to ensure that 
-      }
-      sqsaverage <- rowMeans2(SQS$divSIB, na.rm = TRUE)
-      
-      allSQS <- cbind(allSQS, sqsaverage)
       
       #Binstats
       bin_info <- binstat(df, tax="occurrence.genus_name", bin="bin_no", 
@@ -840,26 +842,28 @@ FormBin_M3<- function(formations, binlist, Form_list, times=10, Quorum) {
         M3_Bin_Info[[4]] <- cbind(M3_Bin_Info[[4]], bin_info$u)
       }
     }
-    #calculate Mean, SD and 95% confidence intervals for SQS data
-    allSQS <- allSQS %>% remove_rownames %>% column_to_rownames(var="binlist.bin")
-    allsqsaverage <- rowMeans2(as.matrix(allSQS), na.rm = TRUE)
-    allsqssd <- rowSds(as.matrix(allSQS), na.rm = TRUE)
-    nr <- min(rowSums(is.na(allSQS))) #number of unsuccessful runs
-    nr <- times - nr # number of successful runs
-    sqserror <- qnorm(0.975) * allsqssd/sqrt(nr) #2.5% each side of tail
-    sqsminerror <- allsqsaverage - sqserror
-    sqsmaxerror <- allsqsaverage + sqserror
-  
-    #bind data
-    combined.sqs <- cbind(allsqsaverage, allsqssd, nr, sqserror, sqsminerror, sqsmaxerror)
-    rownames(combined.sqs) <- binlist$bin
-    combined.sqs <- as.data.frame(combined.sqs)
     
-    temp_name <- paste("q.",deparse(Quorum[q]),"_", "SQS_Results", sep = "") #Name files based on data entered to function
-    assign(temp_name, combined.sqs, envir = .GlobalEnv)
-    sqsmst[[q]] <- combined.sqs
-    names(sqsmst)[[q]] <- deparse(Quorum[q])
+    if (run_SQS == TRUE){
+      #calculate Mean, SD and 95% confidence intervals for SQS data
+      allSQS <- allSQS %>% remove_rownames %>% column_to_rownames(var="binlist.bin")
+      allsqsaverage <- rowMeans2(as.matrix(allSQS), na.rm = TRUE)
+      allsqssd <- rowSds(as.matrix(allSQS), na.rm = TRUE)
+      nr <- min(rowSums(is.na(allSQS))) #number of unsuccessful runs
+      nr <- times - nr # number of successful runs
+      sqserror <- qnorm(0.975) * allsqssd/sqrt(nr) #2.5% each side of tail
+      sqsminerror <- allsqsaverage - sqserror
+      sqsmaxerror <- allsqsaverage + sqserror
     
+      #bind data
+      combined.sqs <- cbind(allsqsaverage, allsqssd, nr, sqserror, sqsminerror, sqsmaxerror)
+      rownames(combined.sqs) <- binlist$bin
+      combined.sqs <- as.data.frame(combined.sqs)
+      
+      temp_name <- paste("q.",deparse(Quorum[q]),"_", "SQS_Results", sep = "") #Name files based on data entered to function
+      assign(temp_name, combined.sqs, envir = .GlobalEnv)
+      sqsmst[[q]] <- combined.sqs
+      names(sqsmst)[[q]] <- deparse(Quorum[q])
+    }
     # Calculate Averaged Bin_Info
     occsaveraged <- rowMeans2(M3_Bin_Info[[1]])
     collsaveraged <- rowMeans2(M3_Bin_Info[[2]])
@@ -870,15 +874,15 @@ FormBin_M3<- function(formations, binlist, Form_list, times=10, Quorum) {
     combined.bin_info <- as.data.frame(combined.bin_info)
     combined.bin_info <<- combined.bin_info
   }
-
-  # Recording Results
-  dir.create(paste0("Results"), showWarnings = FALSE) #stops warnings if folder already exists
-  write.csv(combined.bin_info, file.path(paste("Results/M3_Bin_info.csv", sep="")))
-  for (q in 1:length(Quorum)){
-    temp_name <- paste("M3_SQS_", Quorum[q], sep = "")
-    write.csv(sqsmst[q], file.path(paste("Results/", temp_name, ".csv", sep="")))
+  if (run_SQS == TRUE){
+    # Recording Results
+    dir.create(paste0("Results"), showWarnings = FALSE) #stops warnings if folder already exists
+    write.csv(combined.bin_info, file.path(paste("Results/M3_Bin_info.csv", sep="")))
+    for (q in 1:length(Quorum)){
+      temp_name <- paste("M3_SQS_", Quorum[q], sep = "")
+      write.csv(sqsmst[q], file.path(paste("Results/", temp_name, ".csv", sep="")))
+    }
   }
-  
   # Plotting Raw Div and Sampling Proxies
   #layout(matrix(1:2, ncol = 1), widths = 1, heights = c(2,2), respect = FALSE)
   #par(mar = c(0, 4.1, 4.1, 2.1))
@@ -915,52 +919,54 @@ FormBin_M3<- function(formations, binlist, Form_list, times=10, Quorum) {
   plotMaker(combined.bin_info$collsaveraged, binlist, "Number of Collections")
   plotMaker(combined.bin_info$goodsuaveraged, binlist, "Good's u")
   
-  # Plotting SQS
-  tsplot(stages, boxes=c("short","system"), 
-         xlim=1:nrow(stages),  ylim=c(0,(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+
-                                  (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1))), 
-         shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75),
-         ylab = "Subsampled Diversity")  
-  for (q in 1:length(Quorum)){
-    g.col <- gray.colors(length(Quorum), start = 0.9, end = 0.3, gamma = 2.2, alpha = NULL)
-    enc <- rle(!is.na(sqsmst[[q]]$allsqsaverage))
-    endIdxs <- cumsum(enc$lengths)
-    for(i in 1:length(enc$lengths)){
-      if(enc$values[i]){
-        endIdx <- endIdxs[i]
-        startIdx <- endIdx - enc$lengths[i] + 1
-    
-        subdat <- binlist$mid[startIdx:endIdx]
-        submin <- sqsmst[[q]]$sqsminerror[startIdx:endIdx]
-        submax <- sqsmst[[q]]$sqsmaxerror[startIdx:endIdx]
-        subdepth <- sqsmst[[q]]$allsqsaverage[startIdx:endIdx]
-    
-        x <- c(subdat, rev(subdat))
-        y <- c(submax, rev(submin))
-    
-        polygon(x = x, y = y, col = adjustcolor(g.col[q], alpha.f = 0.40), border = NA)
-        lines(binlist$mid, sqsmst[[q]]$allsqsaverage, type = 'o', col = g.col[q], 
-          pch = 21, bg = "grey")
+  if (run_SQS == TRUE){
+    # Plotting SQS
+    tsplot(stages, boxes=c("short","system"), 
+           xlim=1:nrow(stages),  ylim=c(0,(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+
+                                    (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1))), 
+           shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75),
+           ylab = "Subsampled Diversity")  
+    for (q in 1:length(Quorum)){
+      g.col <- gray.colors(length(Quorum), start = 0.9, end = 0.3, gamma = 2.2, alpha = NULL)
+      enc <- rle(!is.na(sqsmst[[q]]$allsqsaverage))
+      endIdxs <- cumsum(enc$lengths)
+      for(i in 1:length(enc$lengths)){
+        if(enc$values[i]){
+          endIdx <- endIdxs[i]
+          startIdx <- endIdx - enc$lengths[i] + 1
+      
+          subdat <- binlist$mid[startIdx:endIdx]
+          submin <- sqsmst[[q]]$sqsminerror[startIdx:endIdx]
+          submax <- sqsmst[[q]]$sqsmaxerror[startIdx:endIdx]
+          subdepth <- sqsmst[[q]]$allsqsaverage[startIdx:endIdx]
+      
+          x <- c(subdat, rev(subdat))
+          y <- c(submax, rev(submin))
+      
+          polygon(x = x, y = y, col = adjustcolor(g.col[q], alpha.f = 0.40), border = NA)
+          lines(binlist$mid, sqsmst[[q]]$allsqsaverage, type = 'o', col = g.col[q], 
+            pch = 21, bg = "grey")
+        }
       }
     }
-  }
-  for(n in 1:length(form_bins)){
-    if(((n %% 2) == 0) == TRUE) next
-    else {
-      if(n == length(form_bins)){
-        if(nrow(binlist) %% 2 == 0){
-          next
+    for(n in 1:length(form_bins)){
+      if(((n %% 2) == 0) == TRUE) next
+      else {
+        if(n == length(form_bins)){
+          if(nrow(binlist) %% 2 == 0){
+            next
+          }
+          else{
+            rect(useful_bins[n], 0, useful_bins[n-1], 
+            (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1)), 
+            col = "#32323232", border = NA)
+          }
         }
         else{
-          rect(useful_bins[n], 0, useful_bins[n-1], 
+          rect(form_bins[n], 0, form_bins[n+1], 
           (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1)), 
           col = "#32323232", border = NA)
         }
-      }
-      else{
-        rect(form_bins[n], 0, form_bins[n+1], 
-        (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1)), 
-        col = "#32323232", border = NA)
       }
     }
   }

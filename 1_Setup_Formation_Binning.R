@@ -2,7 +2,7 @@
 #================================== FORMATION BINNER - DINOSAURS OF NORTH AMERICA =================================================
 #==================================================================================================================================
 
-# Christopher D. Dean, Alfio A. Chiarenza & Susannah Maidment
+# Christopher D. Dean, A. Alessandro Chiarenza & Susannah Maidment
 # 2019
 
 #================================================ DATA SETUP ======================================================================
@@ -72,7 +72,7 @@ formations <- occs %>%
 
 #===== Set up =====
 Quorum <- c(0.4, 0.6, 0.8)
-bin_limits <- c(3, max(formations$max_age), 66) # Set user defined bin size
+bin_limits <- c(2, max(formations$max_age), 66) # Set user defined bin size
 
 #===== Bin generation and comparison =====
 Scoring_Grid_1(formations) # Generates scoring grid. Currently set to default resolution (0.01 Ma intervals). Choose either Score_Grid_1 or 2 (find out more in Functions File)
@@ -85,7 +85,7 @@ FormationGraph(formations, form_bins, stages, score_grid_2 = FALSE,
 #===== Running diversity Methods =====
 FormBin_M1(formations, binlist, Form_list, Quorum) # Generates formation binned plots of diversity, sampling proxies and SQS results using an inclusive model
 FormBin_M2(formations, binlist, Form_list, Quorum) # Generates formation binned plots of diversity, sampling proxies and SQS results using an exclusive model
-FormBin_M3(formations, binlist, Form_list, times = 100, Quorum) # Generates plots of diversity, sampling proxies and SQS results using a representative model. 
+FormBin_M3(formations, binlist, Form_list, times = 100, Quorum, run_SQS == FALSE) # Generates plots of diversity, sampling proxies and SQS results using a representative model. 
 # Must be run 2 times or more. At high times of times, might take a while!
 
 #===== Testing Resolution =====
