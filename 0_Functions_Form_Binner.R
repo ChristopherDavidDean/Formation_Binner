@@ -733,8 +733,7 @@ FormBin_M2<- function(formations, binlist, Form_list, Quorum) {
 # random from the formation list and not replaced. The test is repeated according to user specified number of runs.
 # Produces graphs showing raw diversity, number of collections, Good's U and SQS results at chosen Quorum levels. 
 
-FormBin_M3<- function(formations, binlist, F
-                      orm_list, times=10, Quorum, run_SQS = TRUE) {
+FormBin_M3<- function(formations, binlist, Form_list, times=10, Quorum, run_SQS = TRUE) {
   ptm <- proc.time()
   for (q in 1:length(Quorum)){
     allSQS <- data.frame(binlist$bin)
