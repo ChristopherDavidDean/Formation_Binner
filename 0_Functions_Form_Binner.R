@@ -465,37 +465,39 @@ FormBin_M1 <- function(formations, binlist, Form_list, Quorum) {
   }
 
   # Plotting Raw Div and Sampling Proxies
-  layout(matrix(1:2, ncol = 1), widths = 1, heights = c(2,2), respect = FALSE)
-  par(mar = c(0, 4.1, 4.1, 2.1))
-  with(binlist, tsplot(stages, ylab = "Raw Diversity",
-              xlim=1:nrow(stages),  ylim=c(0,(max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1))), 
-              shading=NULL, plot.args=list(xaxt = 'n')))
-  useful_bins <- c(binlist$bottom, binlist$top[nrow(binlist)])
-  for(n in 1:length(useful_bins)){
-    if(((n %% 2) == 0) == TRUE) next
-    else {
-      if(n == length(useful_bins)){
-        if(nrow(binlist) %% 2 == 0){
-          next
-        }
-        else{
-          rect(useful_bins[n], 0, useful_bins[n-1], 
-          (max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1)), 
-          col = "#32323232", border = NA)
-        }
-      }
-      else{
-        rect(useful_bins[n], 0, useful_bins[n+1], 
-        (max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1)), 
-        col = "#32323232", border = NA)
-      }
-    }
-  }
-  lines(binlist$mid, bin_info$SIBs, type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
-  par(mar = c(4.1, 4.1, 0, 2.1))
-  with(plotMaker(bin_info$colls, binlist, "Number of Collections"),0)
+  #layout(matrix(1:2, ncol = 1), widths = 1, heights = c(2,2), respect = FALSE)
+  #par(mar = c(0, 4.1, 4.1, 2.1))
+  #with(binlist, tsplot(stages, ylab = "Raw Diversity",
+  #            xlim=1:nrow(stages),  ylim=c(0,(max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1))), 
+  #            shading=NULL, plot.args=list(xaxt = 'n')))
+  #useful_bins <- c(binlist$bottom, binlist$top[nrow(binlist)])
+  #for(n in 1:length(useful_bins)){
+  #  if(((n %% 2) == 0) == TRUE) next
+  #  else {
+  #    if(n == length(useful_bins)){
+  #      if(nrow(binlist) %% 2 == 0){
+  #        next
+  #      }
+  #      else{
+  #        rect(useful_bins[n], 0, useful_bins[n-1], 
+  #        (max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1)), 
+  #        col = "#32323232", border = NA)
+  #      }
+  #    }
+  #    else{
+  #      rect(useful_bins[n], 0, useful_bins[n+1], 
+  #      (max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1)), 
+  #      col = "#32323232", border = NA)
+  #    }
+  #  }
+  #}
+  #lines(binlist$mid, bin_info$SIBs, type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
+  #par(mar = c(4.1, 4.1, 0, 2.1))
+  
   
   par(mfrow=c(1,1), mar = c(4.1, 4.1, 1, 2.1))
+  plotMaker(bin_info$SIBs, binlist, "Raw Diversity")
+  plotMaker(bin_info$colls, binlist, "Number of Collections")
   plotMaker(bin_info$u, binlist, "Good's u")
   
   # Plotting SQS
@@ -638,37 +640,39 @@ FormBin_M2<- function(formations, binlist, Form_list, Quorum) {
   }
   
   # Plotting Raw Div and Sampling Proxies
-  layout(matrix(1:2, ncol = 1), widths = 1, heights = c(2,2), respect = FALSE)
-  par(mar = c(0, 4.1, 4.1, 2.1))
-  with(binlist, tsplot(stages, ylab = "Raw Diversity",
-              xlim=1:nrow(stages),  ylim=c(0,(max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1))), 
-              shading=NULL, plot.args=list(xaxt = 'n')))
-  useful_bins <- c(binlist$bottom, binlist$top[nrow(binlist)])
-  for(n in 1:length(useful_bins)){
-    if(((n %% 2) == 0) == TRUE) next
-    else {
-      if(n == length(useful_bins)){
-        if(nrow(binlist) %% 2 == 0){
-          next
-        }
-        else{
-          rect(useful_bins[n], 0, useful_bins[n-1], 
-          (max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1)), 
-          col = "#32323232", border = NA)
-        }
-      }
-      else{
-        rect(useful_bins[n], 0, useful_bins[n+1], 
-        (max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1)), 
-        col = "#32323232", border = NA)
-      }
-    }
-  }
-  lines(binlist$mid, bin_info$SIBs, type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
-  par(mar = c(4.1, 4.1, 0, 2.1))
-  with(plotMaker(bin_info$colls, binlist, "Number of Collections"),0)
+  #layout(matrix(1:2, ncol = 1), widths = 1, heights = c(2,2), respect = FALSE)
+  #par(mar = c(0, 4.1, 4.1, 2.1))
+  
+  #with(binlist, tsplot(stages, ylab = "Raw Diversity",
+  #            xlim=1:nrow(stages),  ylim=c(0,(max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1))), 
+  #            shading=NULL, plot.args=list(xaxt = 'n')))
+  #useful_bins <- c(binlist$bottom, binlist$top[nrow(binlist)])
+  #for(n in 1:length(useful_bins)){
+  #  if(((n %% 2) == 0) == TRUE) next
+  #  else {
+  #    if(n == length(useful_bins)){
+  #      if(nrow(binlist) %% 2 == 0){
+  #        next
+  #      }
+  #      else{
+  #        rect(useful_bins[n], 0, useful_bins[n-1], 
+  #        (max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1)), 
+  #        col = "#32323232", border = NA)
+  #      }
+  #    }
+  #    else{
+  #      rect(useful_bins[n], 0, useful_bins[n+1], 
+  #      (max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1)), 
+  #      col = "#32323232", border = NA)
+  #    }
+  #  }
+  #}
+  #lines(binlist$mid, bin_info$SIBs, type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
+  #par(mar = c(4.1, 4.1, 0, 2.1))
   
   par(mfrow=c(1,1), mar = c(4.1, 4.1, 1, 2.1))
+  plotMaker(bin_info$SIBs, binlist, "Raw Diversity")
+  plotMaker(bin_info$colls, binlist, "Number of Collections")
   plotMaker(bin_info$u, binlist, "Good's u")
   
   # Plotting SQS
@@ -875,39 +879,40 @@ FormBin_M3<- function(formations, binlist, Form_list, times=10, Quorum) {
     write.csv(sqsmst[q], file.path(paste("Results/", temp_name, ".csv", sep="")))
   }
   
-  # Plotting Raw Div and Sampling Proxies - IN PROGRESS
-  layout(matrix(1:2, ncol = 1), widths = 1, heights = c(2,2), respect = FALSE)
-  par(mar = c(0, 4.1, 4.1, 2.1))
-  with(binlist, tsplot(stages, ylab = "Raw Diversity",
-              xlim=1:nrow(stages),  ylim=c(0,(max(combined.bin_info[["divaveraged"]], na.rm = TRUE)
-              +(max(combined.bin_info[["divaveraged"]], na.rm = TRUE)*0.1))), 
-              shading=NULL, plot.args=list(xaxt = 'n')))
-  useful_bins <- c(binlist$bottom, binlist$top[nrow(binlist)])
-  for(n in 1:length(useful_bins)){
-    if(((n %% 2) == 0) == TRUE) next
-    else {
-      if(n == length(useful_bins)){
-        if(nrow(binlist) %% 2 == 0){
-          next
-        }
-        else{
-          rect(useful_bins[n], 0, useful_bins[n-1], 
-          (max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1)), 
-          col = "#32323232", border = NA)
-        }
-      }
-      else{
-        rect(useful_bins[n], 0, useful_bins[n+1], 
-        (max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1)), 
-        col = "#32323232", border = NA)
-      }
-    }
-  }
-  lines(binlist$mid, combined.bin_info$divaveraged, type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
-  par(mar = c(4.1, 4.1, 0, 2.1))
-  with(plotMaker(combined.bin_info$collsaveraged, binlist, "Number of Collections"),0)
+  # Plotting Raw Div and Sampling Proxies
+  #layout(matrix(1:2, ncol = 1), widths = 1, heights = c(2,2), respect = FALSE)
+  #par(mar = c(0, 4.1, 4.1, 2.1))
+  #with(binlist, tsplot(stages, ylab = "Raw Diversity",
+  #            xlim=1:nrow(stages),  ylim=c(0,(max(combined.bin_info[["divaveraged"]], na.rm = TRUE)
+  #            +(max(combined.bin_info[["divaveraged"]], na.rm = TRUE)*0.1))), 
+  #            shading=NULL, plot.args=list(xaxt = 'n')))
+  #useful_bins <- c(binlist$bottom, binlist$top[nrow(binlist)])
+  #for(n in 1:length(useful_bins)){
+  #  if(((n %% 2) == 0) == TRUE) next
+  #  else {
+  #    if(n == length(useful_bins)){
+  #      if(nrow(binlist) %% 2 == 0){
+  #        next
+  #      }
+  #      else{
+  #        rect(useful_bins[n], 0, useful_bins[n-1], 
+  #        (max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1)), 
+  #        col = "#32323232", border = NA)
+  #      }
+  #    }
+  #    else{
+  #      rect(useful_bins[n], 0, useful_bins[n+1], 
+  #      (max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1)), 
+  #      col = "#32323232", border = NA)
+  #    }
+  #  }
+  #}
+  #lines(binlist$mid, combined.bin_info$divaveraged, type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
+  #par(mar = c(4.1, 4.1, 0, 2.1))
   
   par(mfrow=c(1,1), mar = c(4.1, 4.1, 1, 2.1))
+  plotMaker(combined.bin_info$divaveraged, binlist, "Raw Diversity")
+  plotMaker(combined.bin_info$collsaveraged, binlist, "Number of Collections")
   plotMaker(combined.bin_info$goodsuaveraged, binlist, "Good's u")
   
   # Plotting SQS
