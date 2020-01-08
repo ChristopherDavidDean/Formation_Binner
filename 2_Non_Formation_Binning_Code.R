@@ -1,7 +1,9 @@
 #===== Running Traditional Binning Methods in SQS =====
-# christopher D. Dean, Alfio A. Chiarenza, Susannah Maidment 
 
-# Packages to load
+# Christopher D. Dean, A. Alessandro Chiarenza, Susannah Maidment 
+# 2019
+
+#===== 0. Packages to load =====
 library(matrixStats)
 library(divDyn)
 
@@ -64,6 +66,8 @@ for (q in 1:length(Quorum)){
 }
 
 #=== Plotting raw diversity, collections and Good's U ===
+
+# Diversity and Collections together
 layout(matrix(1:2, ncol = 1), widths = 1, heights = c(2,2), respect = FALSE)
 par(mar = c(0, 4.1, 4.1, 2.1))
 with(stages[75:81,], tsplot(stages, ylab = "Raw Diversity",
@@ -77,6 +81,19 @@ tsplot(stages, boxes=c("short","system"), ylab = "Number of Collections", # Crea
        shading="stage", boxes.col=c("col","systemCol"), labels.args=list(cex=0.75))  
 lines(stages$mid[75:81], bin_info$colls[75:81], type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
 
+# Diversity and Collections seperately
+par(mfrow=c(1,1), mar = c(4.1, 4.1, 1, 2.1))
+tsplot(stages, boxes=c("short","system"), ylab = "Raw Diversity",
+       xlim=75:81,  ylim=c(0,(max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1))), 
+       shading="stage", boxes.col=c("col","systemCol"), labels.args=list(cex=0.75))
+lines(stages$mid[75:81], bin_info$SIBs[75:81], type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
+
+tsplot(stages, boxes=c("short","system"), ylab = "Number of Collections",
+       xlim=75:81,  ylim=c(0,(max(bin_info$colls, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1))), 
+       shading="stage", boxes.col=c("col","systemCol"), labels.args=list(cex=0.75))
+lines(stages$mid[75:81], bin_info$colls[75:81], type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
+
+# Goods u
 par(mfrow=c(1,1), mar = c(4.1, 4.1, 1, 2.1))
 tsplot(stages, boxes=c("short","system"), ylab = "Good's U", # Creates plot using data from DivDyn package. 
        xlim=75:81,  ylim=c(0,(max(bin_info$u[75:81], na.rm = TRUE)+(max(bin_info$u[75:81], na.rm = TRUE)*0.1))), 
@@ -174,6 +191,8 @@ sqsmst[[2]][sqsmst[[2]] == 0] <- NA
 sqsmst[[3]][sqsmst[[3]] == 0] <- NA
 
 #=== Plotting raw diversity, collections and Good's U ===
+
+# Diversity and Collections together
 layout(matrix(1:2, ncol = 1), widths = 1, heights = c(2,2), respect = FALSE)
 par(mar = c(0, 4.1, 4.1, 2.1))
 with(stages[75:81,], tsplot(stages, ylab = "Raw Diversity",
@@ -186,6 +205,19 @@ tsplot(stages, boxes=c("short","system"), ylab = "Number of Collections", # Crea
        xlim=75:81,  ylim=c(0,(max(bin_info$colls[75:81], na.rm = TRUE)+(max(bin_info$colls[75:81], na.rm = TRUE)*0.1))), 
        shading="stage", boxes.col=c("col","systemCol"), labels.args=list(cex=0.75))  
 lines(stages$mid[75:81], bin_info$colls[75:81], type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
+
+# Diversity and Collections seperately
+par(mfrow=c(1,1), mar = c(4.1, 4.1, 1, 2.1))
+tsplot(stages, boxes=c("short","system"), ylab = "Raw Diversity",
+       xlim=75:81,  ylim=c(0,(max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1))), 
+       shading="stage", boxes.col=c("col","systemCol"), labels.args=list(cex=0.75))
+lines(stages$mid[75:81], bin_info$SIBs[75:81], type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
+
+tsplot(stages, boxes=c("short","system"), ylab = "Number of Collections",
+       xlim=75:81,  ylim=c(0,(max(bin_info$colls, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1))), 
+       shading="stage", boxes.col=c("col","systemCol"), labels.args=list(cex=0.75))
+lines(stages$mid[75:81], bin_info$colls[75:81], type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
+
 
 par(mfrow=c(1,1), mar = c(4.1, 4.1, 1, 2.1))
 tsplot(stages, boxes=c("short","system"), ylab = "Good's U", # Creates plot using data from DivDyn package. 
