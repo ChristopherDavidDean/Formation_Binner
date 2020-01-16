@@ -266,10 +266,14 @@ newBins <- function(score_grid, formations, bin_limits, allbins, stages, smallam
 
 # Shows what formations look like through time in comparison to Stages and new Bins.
 # Requires formations, form_bins from newBins function and stages from DivDyn package
-FormationGraph <- function(formations, form_bins, stages, score_grid_2 = FALSE, draw_by = "Lat", divcol = TRUE, legend = TRUE, STAGE = FALSE){ # Requires formations, form_bins from newBins function and stages from DivDyn package
+FormationGraph <- function(formations, form_bins, stages, score_grid_2 = FALSE, draw_by = "Lat", Col = "None", legend = TRUE, STAGE = FALSE){ # Requires formations, form_bins from newBins function and stages from DivDyn package
   TYPE <- c("Lat", "Max_Age", "Number")
   if (is.na(pmatch(draw_by, TYPE))){
-    stop("Invalid method. Choose either 'Lat', 'Max_Age', or 'Number'.")
+    stop("Invalid drawing method. Choose either 'Lat', 'Max_Age', or 'Number'.")
+  }
+  TYPE <- c("None", "Diversity", "Occurrences")
+  if (is.na(pmatch(Col, TYPE))){
+    stop("Invalid colouring method. Choose either 'None', 'Diversity', or 'Occurrences'.")
   }
   fp1 <- data.frame(matrix(ncol = 5, nrow = 0))
   fplong <- data.frame(matrix(ncol = 5, nrow = 0))
@@ -277,35 +281,43 @@ FormationGraph <- function(formations, form_bins, stages, score_grid_2 = FALSE, 
     if (formations$max_age[f] - formations$min_age[f] > # If formation range is less than the mean formation range
         mean(formations$max_age - formations$min_age)) {
       if (draw_by == "Lat"){
-        fplong <- rbind(fplong, c(formations$min_age[f], formations$Mean_Lat[f], formations$max_age[f], formations$Mean_Lat[f], formations$Diversity[f]))
+        fplong <- rbind(fplong, c(formations$min_age[f], formations$Mean_Lat[f], formations$max_age[f], formations$Mean_Lat[f], formations$Diversity[f], formations$Occurrences[f]))
       }
       if (draw_by == "Max_Age"){
-        fplong <- rbind(fplong, c(formations$min_age[f], formations$max_age[f], formations$max_age[f], formations$max_age[f], formations$Diversity[f]))
+        fplong <- rbind(fplong, c(formations$min_age[f], formations$max_age[f], formations$max_age[f], formations$max_age[f], formations$Diversity[f], formations$Occurrences[f]))
       }
       if (draw_by == "Number"){
-        fplong <- rbind(fplong, c(formations$min_age[f], formations$forbinning[f], formations$max_age[f], formations$forbinning[f], formations$Diversity[f]))
+        fplong <- rbind(fplong, c(formations$min_age[f], formations$forbinning[f], formations$max_age[f], formations$forbinning[f], formations$Diversity[f], formations$Occurrences[f]))
       }
     }
     else{
       if(draw_by == "Lat"){
-        fp1 <- rbind(fp1, c(formations$min_age[f], formations$Mean_Lat[f], formations$max_age[f], formations$Mean_Lat[f], formations$Diversity[f]))
+        fp1 <- rbind(fp1, c(formations$min_age[f], formations$Mean_Lat[f], formations$max_age[f], formations$Mean_Lat[f], formations$Diversity[f], formations$Occurrences[f]))
       }
       if(draw_by == "Max_Age"){
-        fp1 <- rbind(fp1, c(formations$min_age[f], formations$max_age[f], formations$max_age[f], formations$max_age[f], formations$Diversity[f]))
+        fp1 <- rbind(fp1, c(formations$min_age[f], formations$max_age[f], formations$max_age[f], formations$max_age[f], formations$Diversity[f], formations$Occurrences[f]))
       }
       if(draw_by == "Number")
-        fp1 <- rbind(fp1, c(formations$min_age[f], formations$forbinning[f], formations$max_age[f], formations$forbinning[f], formations$Diversity[f]))
+        fp1 <- rbind(fp1, c(formations$min_age[f], formations$forbinning[f], formations$max_age[f], formations$forbinning[f], formations$Diversity[f], formations$Occurrences[f]))
     }
   }
-  names <- c("x1", "y1", "x2", "y2", "Diversity")
+  names <- c("x1", "y1", "x2", "y2", "Diversity", "Occurrences")
   colnames(fp1) <- names
   colnames(fplong) <- names
   fp <- rbind(fp1, fplong)
   layout(matrix(1:1,nrow=1), widths=c(1,1), height = c(1,1))
-  if(divcol == TRUE){
+  if(Col == "Diversity"){
     cols <- brewer.pal(5, "Reds")
     colramp <- colorRampPalette(cols)
     fp$Col <- colramp(5)[as.numeric(cut(fp$Diversity,breaks = 5))]
+    if (legend == TRUE){
+      layout(matrix(1:2,nrow=1), widths=c(0.85,0.15), heights = c(1,1))
+    }
+  }
+  if(Col == "Occurrences"){
+    cols <- brewer.pal(5, "Reds")
+    colramp <- colorRampPalette(cols)
+    fp$Col <- colramp(5)[as.numeric(cut(fp$Occurrences,breaks = 5))]
     if (legend == TRUE){
       layout(matrix(1:2,nrow=1), widths=c(0.85,0.15), heights = c(1,1))
     }
@@ -371,7 +383,7 @@ FormationGraph <- function(formations, form_bins, stages, score_grid_2 = FALSE, 
   }
   if (score_grid_2 == TRUE){
     segments(fplong$x1, fplong$y1, fplong$x2, fplong$y2, lwd = 2, col = "grey") # Plots formations as lines showing their duration
-    if (divcol == TRUE){
+    if (Col == "Diversity" | Col == "Occurrences"){
       segments(fp1$x1, fp1$y1, fp1$x2, fp1$y2, lwd = 2, col = fp$Col) 
     }
     else{
@@ -379,19 +391,27 @@ FormationGraph <- function(formations, form_bins, stages, score_grid_2 = FALSE, 
     }
   }
   else{
-    if (divcol == TRUE){
+    if (Col == "Diversity" | Col == "Occurrences"){
       segments(fp$x1, fp$y1, fp$x2, fp$y2, lwd = 2, col = fp$Col) 
     }
     else{
       segments(fp$x1, fp$y1, fp$x2, fp$y2, lwd = 2) 
     }
   }
-  if (divcol == TRUE && legend == TRUE){
+  if (Col == "Diversity" && legend == TRUE){
     par(mar = c(4.1, 0.5, 1, 0))
     legend_image <- as.raster(matrix(rev(colramp(5)), ncol=1))
     plot(c(0,4),c(0,1),type = 'n', axes = F, xlab = '', ylab = '')
     title("Diversity", cex.main = 0.9, line = -5, adj = 0)
     text(x=1.1, y = seq(0.25,0.75,l=5), cex = 0.9, labels = round(seq(0,max(fp$Diversity),l=5)))
+    rasterImage(legend_image, 0, 0.25, 0.5, 0.75)
+  }
+  if (Col == "Occurrences" && legend == TRUE){
+    par(mar = c(4.1, 0.5, 1, 0))
+    legend_image <- as.raster(matrix(rev(colramp(5)), ncol=1))
+    plot(c(0,4),c(0,1),type = 'n', axes = F, xlab = '', ylab = '')
+    title("Occurrences", cex.main = 0.9, line = -5, adj = 0)
+    text(x=1.1, y = seq(0.25,0.75,l=5), cex = 0.9, labels = round(seq(0,max(fp$Occurrences),l=5)))
     rasterImage(legend_image, 0, 0.25, 0.5, 0.75)
   }
 }

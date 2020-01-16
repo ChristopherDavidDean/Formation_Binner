@@ -64,9 +64,9 @@ formations <- occs %>%
   rename(Formation = formation) %>%
   group_by(Formation) %>%
   dplyr::summarize(Mean_Lat = mean(latdec, na.rm = TRUE),
-                   Diversity = n_distinct(occurrence.genus_name)) %>%
+                   Diversity = n_distinct(occurrence.genus_name),
+                   Occurrences = n()) %>%
   inner_join(formations, by = "Formation")
-
 
 #=============================================== RUNNING TESTS ===================================================================
 
@@ -79,8 +79,8 @@ Scoring_Grid_1(formations) # Generates scoring grid. Currently set to default re
 Scoring_Grid_2(formations)
 newBins(score_grid, formations, bin_limits, allbins, stages, smallamalg = TRUE) # Uses the scoring grid to generate new bins.
 overlap_counter(score_grid)
-FormationGraph(formations, form_bins, stages, score_grid_2 = FALSE, 
-               draw_by = "Lat", divcol = TRUE, legend = TRUE, STAGE = TRUE) # Visualises the range of formations in comparison with stage level bins and new bins.
+FormationGraph(formations, form_bins, stages, score_grid_2 = TRUE, 
+               draw_by = "Lat", Col = "Occurrences", legend = TRUE, STAGE = FALSE) # Visualises the range of formations in comparison with stage level bins and new bins.
 
 #===== Running diversity Methods =====
 FormBin_M1(formations, binlist, Form_list, Quorum) # Generates formation binned plots of diversity, sampling proxies and SQS results using an inclusive model
