@@ -3,7 +3,7 @@
 ## Authors
 
 * **Christopher D. Dean** - [ChristopherDavidDean](https://github.com/ChristopherDavidDean)
-* Alfio A. Chiarenza
+* Alfio A. Chiarenza - [AlfioAlessandroChiarenza](https://github.com/AlfioAlessandroChiarenza)
 * Susannah Maidment
 
 ---
@@ -11,7 +11,7 @@
 ### What is it?
 Formation Binner consists of script to generate time bins based on regional geology and subsequently produce raw and subsampled diversity estimates based on both original and newly generated bins.
 ### Why should I use it?
-Formation Binner allows for 
+Formation Binner gives the 
 
 ---
 ## Requirements
@@ -27,18 +27,27 @@ Formation Binner requires two initial datasets:
 The following R packages are required to run the script for Formation Binner:
 
 ```
-library(pbmcapply)
+library(pbapply)
 library(dplyr)
 library(tidyverse)
 library(divDyn)
 library(rowr)
 library(matrixStats)
 library(beepr)
+library(iNEXT)
+library(reshape2)
+library(RColorBrewer)
 ```
 ---
 ## How it works
 
-Formation binner...
+Formation binner is made up of a series of functions, which are stored within the 0_Functions_Form_Binner.R file and loaded through the 1_Setup_Formation_Binning.R file. The functions take data in the form of a .csv file of occurrences downloaded from the [Paleobiology Database](www.paleobiodb.org) and a .csv file of formations, including the neccessary fields Formation, max_age and min_age. 
+
+Before running the main functions, a few things need to be setup. First, run `data(stages)` to load stage data from the package `divDyn`, and then select only the rows which contain the stages of interest for your study. It is also neccessary to set up your chosen quorums for running the SQS analysis, and your binlimits which define the resolution that you are intending to work at (these settings can be founnd in the 1_Setup_Formation_Binning.R file). 
+
+Once both occurrence and formation data have been cleaned, the first step is to run either the Scoring_Grid_1 or Scoring_Grid_2 function, inputting your formations. Scoring grid repeatedly checks the suitability of drawing a time bin boundary in 0.01 Ma intervals, with the aim of minimizing the number of formations that are split by bins. This is accomplished by assessing the chronologic position of each formation relative to the proposed time bin boundary. If the formation does not cross the boundary, it gets an automatic maximum binning score of 100. If the formation crosses the boundary, the script assesses the smallest percentage of the duration of the formation that sits either side of that boundary, and reduces the binning score by that appropriate percentage. For example, if a formation spanned from 80 to 90 Ma and the proposed boundary was 81 Ma, 10% of the formation would fall over this boundary, and so the binning score for that formation for that boundary would be reduced by 10%, equaling a final score of 90. Scores for each formation are recorded in a score grid, which is outputted as `score_grid` in the global environment. The vector of all possible bins is also outputted as `allbins` in the global environment. 
+
+Next, the function `newBins` is run with the variables `score_grid`, `formations`, `bin_limits`, `allbins`, and `stages`. 
 
 ---
 
