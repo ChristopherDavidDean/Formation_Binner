@@ -24,19 +24,56 @@ myformations <- sort(as.vector(formations$Formation)) # Organise
 
 # Select appropriate occurrences
 occs <- occs[occs$formation %in% myformations,] # Only include occurrences from formation list
-occs <- droplevels.data.frame(testoccs) # Remove old levels
 
 colnames(occs)[38] <- "new_bin"
 occs$new_bin <- as.numeric(as.character(occs$new_bin))
 
-#=== Binning ===
-for(s in 1:nrow(stages)){
+#=== Binning at Stage level ===
+
+bins <- c(113.1, 100.5, 93.9, 89.8, 84.2, 72.5, 66)
+
+binDframe <- data.frame(bin = c("Albian", 
+                                "Cenomanian",
+                                "Turonian",
+                                "Coniacian",
+                                "Santonian",
+                                "Campanian",
+                                "Maastrichtian"), # Combines bin data to make dataframe of minimum, maximum and mid point of each new bin
+                        FAD = as.numeric(bins[1:(length(bins)-1)]+1), 
+                        LAD = as.numeric(bins[2:(length(bins))]))
+binDframe$mid <- (binDframe$FAD+binDframe$LAD)/2
+
+for(s in 1:nrow(binDframe)){
   for(o in 1:nrow(occs)){
-    if(occs$ma_mid[o] < stages$bottom[s] && occs$ma_mid[o] > stages$top[s]){
+    if(occs$ma_mid[o] < binDframe$FAD[s] && occs$ma_mid[o] > binDframe$LAD[s]){
       occs$new_bin[o] <- stages$stg[s]
     }
   }
 }
+
+#=== Binning at sub-Stage level ===
+
+bins <- c(113.1, 110.2, 107.6, 100.5, 98.5, 96.3, 93.9, 92.9, 91.5, 89.8, 88.5, 88.1, 86.3, 86, 84.2, 80.6, 76.3, 72.5, 69.9, 66)
+
+binDframe <- data.frame(bin = c("Lower Albian", "Middle Albian", "Upper Albian", 
+                                "Lower Cenomanian", "Middle Cenomanian", "Upper Cenomanian",
+                                "Lower Turonian", "Middle Turonian", "Upper Turonian",
+                                "Lower Coniacian", "Middle Coniacian", "Upper Coniacian",
+                                "Lower Santonian", "Upper Santonian", 
+                                "Lower Campanian", "Middle Campanian", "Upper Campanian",
+                                "Lower Maastrichtian", "Upper Maastrichtian"), # Combines bin data to make dataframe of minimum, maximum and mid point of each new bin
+                        FAD = as.numeric(bins[1:(length(bins)-1)]+1), 
+                        LAD = as.numeric(bins[2:(length(bins))]))
+binDframe$mid <- (binDframe$FAD+binDframe$LAD)/2
+
+for(s in 1:nrow(binDframe)){
+  for(o in 1:nrow(occs)){
+    if(occs$ma_mid[o] < binDframe$FAD[s] && occs$ma_mid[o] > binDframe$LAD[s]){
+      occs$new_bin[o] <- stages$stg[s]
+    }
+  }
+}
+
 
 #=== Raw Diversity and SQS ===
 bin_info <- binstat(occs, tax="occurrence.genus_name", bin="new_bin", 
@@ -49,14 +86,14 @@ for (q in 1:length(Quorum)){
   SQS <- subsample(occs,iter=100, q=Quorum[q], tax="occurrence.genus_name", bin="new_bin", 
                    coll = 'collection_no', output="dist", type="sqs", 
                    duplicates = TRUE, useFailed = TRUE)
-  SIBSQS <- SQS$divSIB[75:81,]
+  SIBSQS <- SQS$divSIB
   MeanSQS <- rowMeans2(SIBSQS)
   SDSQS <- rowSds(SIBSQS)
   MaxSDSQS <- MeanSQS + SDSQS
   MinSDSQS <- MeanSQS - SDSQS
   
   combined.sqs <- cbind(MeanSQS, SDSQS, MaxSDSQS, MinSDSQS)
-  rownames(combined.sqs) <- stages$stage[75:81]
+  rownames(combined.sqs) <- binDframe$bin
   combined.sqs <- as.data.frame(combined.sqs)
   
   temp_name <- paste("q.",deparse(Quorum[q]),"_", "SQS_Results", sep = "") #Name files based on data entered to function
@@ -74,31 +111,31 @@ with(stages[75:81,], tsplot(stages, ylab = "Raw Diversity",
                      xlim=75:81,  ylim=c(0,(max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1))), 
                      shading="stage", plot.args=list(xaxt = 'n')))
 
-lines(stages$mid[75:81], bin_info$SIBs[75:81], type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
+lines(binDframe$mid, bin_info$SIBs, type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
 par(mar = c(4.1, 4.1, 0, 2.1))
 tsplot(stages, boxes=c("short","system"), ylab = "Number of Collections", # Creates plot using data from DivDyn package. 
-       xlim=75:81,  ylim=c(0,(max(bin_info$colls[75:81], na.rm = TRUE)+(max(bin_info$colls[75:81], na.rm = TRUE)*0.1))), 
+       xlim=75:81,  ylim=c(0,(max(bin_info$colls, na.rm = TRUE)+(max(bin_info$colls, na.rm = TRUE)*0.1))), 
        shading="stage", boxes.col=c("col","systemCol"), labels.args=list(cex=0.75))  
-lines(stages$mid[75:81], bin_info$colls[75:81], type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
+lines(binDframe$mid, bin_info$colls, type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
 
 # Diversity and Collections seperately
 par(mfrow=c(1,1), mar = c(4.1, 4.1, 1, 2.1))
 tsplot(stages, boxes=c("short","system"), ylab = "Raw Diversity",
        xlim=75:81,  ylim=c(0,(max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1))), 
        shading="stage", boxes.col=c("col","systemCol"), labels.args=list(cex=0.75))
-lines(stages$mid[75:81], bin_info$SIBs[75:81], type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
+lines(binDframe$mid, bin_info$SIBs, type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
 
 tsplot(stages, boxes=c("short","system"), ylab = "Number of Collections",
        xlim=75:81,  ylim=c(0,(max(bin_info$colls, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1))), 
        shading="stage", boxes.col=c("col","systemCol"), labels.args=list(cex=0.75))
-lines(stages$mid[75:81], bin_info$colls[75:81], type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
+lines(binDframe$mid, bin_info$colls, type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
 
 # Goods u
 par(mfrow=c(1,1), mar = c(4.1, 4.1, 1, 2.1))
 tsplot(stages, boxes=c("short","system"), ylab = "Good's U", # Creates plot using data from DivDyn package. 
        xlim=75:81,  ylim=c(0,(max(bin_info$u[75:81], na.rm = TRUE)+(max(bin_info$u[75:81], na.rm = TRUE)*0.1))), 
        shading="stage", boxes.col=c("col","systemCol"), labels.args=list(cex=0.75))  
-lines(stages$mid[75:81], bin_info$u[75:81], type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
+lines(binDframe$mid, bin_info$u, type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
 
 #=== Plotting SQS ===
 tsplot(stages, boxes=c("short","system"), 
@@ -115,7 +152,7 @@ for (q in 1:length(Quorum)){
       endIdx <- endIdxs[i]
       startIdx <- endIdx - enc$lengths[i] + 1
       
-      subdat <- stages$mid[75:81][startIdx:endIdx]
+      subdat <- binDframe$mid[startIdx:endIdx]
       submin <- sqsmst[[q]]$MinSDSQS[startIdx:endIdx]
       submax <- sqsmst[[q]]$MaxSDSQS[startIdx:endIdx]
       subdepth <- sqsmst[[q]]$MeanSQS[startIdx:endIdx]
@@ -124,7 +161,7 @@ for (q in 1:length(Quorum)){
       y <- c(submax, rev(submin))
       
       polygon(x = x, y = y, col = adjustcolor(g.col[q], alpha.f = 0.40), border = NA)
-      lines(stages$mid[75:81], sqsmst[[q]]$MeanSQS, type = 'o', col = g.col[q], 
+      lines(binDframe$mid, sqsmst[[q]]$MeanSQS, type = 'o', col = g.col[q], 
             pch = 21, bg = "grey")
     }
   }
@@ -152,9 +189,18 @@ for(o in 1:nrow(occs)){
 }
 
 #=== Binning === 
-for(s in 1:nrow(stages)){
+for(s in 1:nrow(binDframe)){
   for(o in 1:nrow(occs)){
-    if(occs$new_mid_age[o] < stages$bottom[s] && occs$new_mid_age[o] > stages$top[s]){
+    if(occs$new_mid_age[o] < binDframe$FAD[s] && occs$new_mid_age[o] > binDframe$LAD[s]){
+      occs$new_bin[o] <- stages$stg[s]
+    }
+  }
+}
+
+#=== Binning at Sub-Stage level
+for(s in 1:nrow(binDframe)){
+  for(o in 1:nrow(occs)){
+    if(occs$new_mid_age[o] < binDframe$FAD[s] && occs$new_mid_age[o] > binDframe$LAD[s]){
       occs$new_bin[o] <- stages$stg[s]
     }
   }
@@ -171,14 +217,14 @@ for (q in 1:length(Quorum)){
   SQS <- subsample(occs,iter=100, q=Quorum[q], tax="occurrence.genus_name", bin="new_bin", 
                    coll = 'collection_no', output="dist", type="sqs", 
                    duplicates = TRUE, useFailed = TRUE)
-  SIBSQS <- SQS$divSIB[75:81,]
+  SIBSQS <- SQS$divSIB
   MeanSQS <- rowMeans2(SIBSQS)
   SDSQS <- rowSds(SIBSQS)
   MaxSDSQS <- MeanSQS + SDSQS
   MinSDSQS <- MeanSQS - SDSQS
   
   combined.sqs <- cbind(MeanSQS, SDSQS, MaxSDSQS, MinSDSQS)
-  rownames(combined.sqs) <- stages$stage[75:81]
+  rownames(combined.sqs) <- binDframe$bin
   combined.sqs <- as.data.frame(combined.sqs)
   
   temp_name <- paste("q.",deparse(Quorum[q]),"_", "SQS_Results", sep = "") #Name files based on data entered to function
@@ -199,31 +245,31 @@ with(stages[75:81,], tsplot(stages, ylab = "Raw Diversity",
                             xlim=75:81,  ylim=c(0,(max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1))), 
                             shading="stage", plot.args=list(xaxt = 'n')))
 
-lines(stages$mid[75:81], bin_info$SIBs[75:81], type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
+lines(binDframe$mid, bin_info$SIBs, type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
 par(mar = c(4.1, 4.1, 0, 2.1))
 tsplot(stages, boxes=c("short","system"), ylab = "Number of Collections", # Creates plot using data from DivDyn package. 
-       xlim=75:81,  ylim=c(0,(max(bin_info$colls[75:81], na.rm = TRUE)+(max(bin_info$colls[75:81], na.rm = TRUE)*0.1))), 
+       xlim=75:81,  ylim=c(0,(max(bin_info$colls, na.rm = TRUE)+(max(bin_info$colls, na.rm = TRUE)*0.1))), 
        shading="stage", boxes.col=c("col","systemCol"), labels.args=list(cex=0.75))  
-lines(stages$mid[75:81], bin_info$colls[75:81], type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
+lines(binDframe$mid, bin_info$colls, type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
 
 # Diversity and Collections seperately
 par(mfrow=c(1,1), mar = c(4.1, 4.1, 1, 2.1))
 tsplot(stages, boxes=c("short","system"), ylab = "Raw Diversity",
        xlim=75:81,  ylim=c(0,(max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1))), 
        shading="stage", boxes.col=c("col","systemCol"), labels.args=list(cex=0.75))
-lines(stages$mid[75:81], bin_info$SIBs[75:81], type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
+lines(binDframe$mid, bin_info$SIBs, type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
 
 tsplot(stages, boxes=c("short","system"), ylab = "Number of Collections",
        xlim=75:81,  ylim=c(0,(max(bin_info$colls, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1))), 
        shading="stage", boxes.col=c("col","systemCol"), labels.args=list(cex=0.75))
-lines(stages$mid[75:81], bin_info$colls[75:81], type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
+lines(binDframe$mid, bin_info$colls, type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
 
 
 par(mfrow=c(1,1), mar = c(4.1, 4.1, 1, 2.1))
 tsplot(stages, boxes=c("short","system"), ylab = "Good's U", # Creates plot using data from DivDyn package. 
        xlim=75:81,  ylim=c(0,(max(bin_info$u[75:81], na.rm = TRUE)+(max(bin_info$u[75:81], na.rm = TRUE)*0.1))), 
        shading="stage", boxes.col=c("col","systemCol"), labels.args=list(cex=0.75))  
-lines(stages$mid[75:81], bin_info$u[75:81], type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
+lines(binDframe$mid, bin_info$u, type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
 
 #=== Plotting SQS ===
 tsplot(stages, boxes=c("short","system"), 
@@ -240,7 +286,7 @@ for (q in 1:length(Quorum)){
       endIdx <- endIdxs[i]
       startIdx <- endIdx - enc$lengths[i] + 1
       
-      subdat <- stages$mid[75:81][startIdx:endIdx]
+      subdat <- binDframe$mid[startIdx:endIdx]
       submin <- sqsmst[[q]]$MinSDSQS[startIdx:endIdx]
       submax <- sqsmst[[q]]$MaxSDSQS[startIdx:endIdx]
       subdepth <- sqsmst[[q]]$MeanSQS[startIdx:endIdx]
@@ -249,14 +295,14 @@ for (q in 1:length(Quorum)){
       y <- c(submax, rev(submin))
       
       polygon(x = x, y = y, col = adjustcolor(g.col[q], alpha.f = 0.40), border = NA)
-      lines(stages$mid[75:81], sqsmst[[q]]$MeanSQS, type = 'o', col = g.col[q], 
+      lines(binDframe$mid, sqsmst[[q]]$MeanSQS, type = 'o', col = g.col[q], 
             pch = 21, bg = "grey")
     }
   }
 }
 
 #=== Recording Results ===
-bin_info <- bin_info[75:81,]
+bin_info <- bin_info
 dir.create(paste0("Results"), showWarnings = FALSE) #stops warnings if folder already exists
 write.csv(bin_info, file.path(paste("Results/SB_NewFormAge_Bin_info.csv", sep="")))
 for (q in 1:length(Quorum)){
