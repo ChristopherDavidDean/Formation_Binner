@@ -49,7 +49,7 @@ Once both occurrence and formation data have been cleaned, the first step is to 
 
 Next, the function `newBins` is run with the variables `score_grid`, `formations`, `bin_limits`, `allbins`, and `stages`. `newBins` generates the mean score across all formations for each increment of time that intends to reflect the suitability to draw a boundary at that point. Mean scores are then compared throughout the time series in user defined windows of time as specified in the `bin_limits` argument, and the maximum binning values within each are outputted as bins. if the argument `smallamalg` is set to `TRUE`, then in the event that a bin is under 0.5 Ma in duration, the script will amalgamate the bin equally into the bins above and below it, whilst generating a warning for the user. `newBins` also draws a plot of the mean score through time for the user, and outputs `form_bins`, a vector of bin ages, and `binlist`, a dataframe of bin maximum, minimum and midpoint ages. 
 
-Once bins have been generated, you can use either `FormBin_M1`, `FormBin_M2` or `FormBin_M3` to 
+Once bins have been generated, you can use either `FormBin_M1`, `FormBin_M2` or `FormBin_M3` to bin occurrences and generate plots of raw diversity, number of collections, Good's u and SQS diversity through time. These functions require `formations`, `binlist`, `Form_list` and `Quorum`. 
 
 ---
 
