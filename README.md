@@ -11,7 +11,12 @@
 ### What is it?
 Formation Binner consists of script to generate time bins based on regional geology and subsequently produce raw and subsampled diversity estimates based on both original and newly generated bins.
 ### Why should I use it?
-Formation Binner gives the user the ability to produce multiple diversity curves using a variety of binning methods at different resolutions to test whether the 
+Formation Binner can:
+* Increase the resolution of diversity studies within regional contexts.
+* Provide the opportunity to easily compare multiple temporal frameworks and observe how they affect the shape of the diversity curve.
+* Show the distributions of formations and taxic diversity through time and space, giving the user an idea of:
+  * The spatial architecture behind the distribution of formations, and the fossil record they subsequently provide;
+  * Whether their data is of suitable quality to answer their chosen research question.
 
 ---
 ## Requirements
@@ -70,7 +75,7 @@ This file contains all the necessary functions to generate formation bins and as
 `plotMaker(rel_data, binlist, ulabel)` - Generates plots through time with user inputted data and Formation_Bins, whilst providing traditional stage data for comparison. NOTE: xlim is specified to fit the chosen time window of this study - as such, this would
 have to be adjusted if other data were to be used.
 
-`overlap_counter(score_grid)` - Generates a quick high resolution plot of the number of formations present through geologic time. 
+`overlap_counter(score_grid)` - Generates a quick high resolution plot of the number of formations present through geologic time. Will get different results depending on whether `Scoring_Grid_1` or `Scoring_Grid_2` was used to generate `score_grid`.
 
 `newBins(score_grid, formations, bin_limits, allbins, stages, smallamalg = TRUE)` - Looks at the previously generated score_grid and generates appropriate new bins based on those scores. Boundaries are outputted as a list (binlist). When `smallamalg` is set to `TRUE`, if bins are shorter than 0.5 Ma they are amalgamated into the bins above and below, and a warning is produced for the user. 
 
@@ -83,23 +88,13 @@ have to be adjusted if other data were to be used.
 `FormBin_M3(formations, binlist, Form_list, times=10, Quorum, run_SQS = TRUE)` - Uses the generated boundaries from Bins to assign user specified occurrences (Form_list) and formations to all bins that they occur in, based on the percentage of the formation that sits within that bin. Occurrences are selected at random from the formation list and not replaced. The test is repeated according to user specified number of runs. Produces graphs showing raw diversity, number of collections, Good's U and SQS results at chosen Quorum levels. `run_SQS` can be set to `FALSE` to skip generating SQS results, for faster speed.
 
 ### 1_Setup_Formation_Binning
+This file is set up for running binning by formation. It contains the following sections:
+
+`DATA SETUP` - This section contains script for loading functions, packages and data, as well as cleaning and setting up data ready for running formation binning tests.
+
+`RUNNING TESTS` - This section contains script for binning by formation, visualising formation data, running the different diversity methods and testing how different resolutions of formation_binning affect diversity results. 
 
 ### 2_Non_Formation_Binning
+This file contains script for producing diversity curves using traditional bins, either at stage or substage level. Binning occurrences is done using either traditional PBDB ages or updated formation ages which were used for formation binner to compare their relative accuracy and how this influences diversity curves. 
 
-```
-Give an example
-```
-
-### And coding style tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
 ---
-## Acknowledgments
-
-* Hat tip to anyone whose code was used
-* Inspiration
-* etc
