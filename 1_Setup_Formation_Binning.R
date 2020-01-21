@@ -31,8 +31,8 @@ library(reshape2)
 library(RColorBrewer)
 
 # Data input
-formations <- read.csv (file = "Data/Formations_test2.csv")  #Read in formations
-occs <- read.csv(file = "Data/NADINOS-occs-edit.csv") # Read in occurrences
+formations <- read.csv (file = "Data/Formations_Final.csv")  #Read in formations
+occs <- read.csv(file = "Data/Occurrences_Final.csv") # Read in occurrences
 
 # Standard Bin setup - trim to fit relevant time frame. 
 data(stages)

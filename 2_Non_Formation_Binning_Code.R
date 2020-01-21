@@ -10,8 +10,8 @@ library(divDyn)
 #===== 1. Diversity based on PBDB ages =====
 
 #=== Set Up ===
-occs <- read.csv(file = "Data/NADINOS-occs-edit.csv") # Read in occurrences
-formations <- read.csv (file = "Data/Formations_test2.csv")  #Read in formations
+occs <- read.csv(file = "Data/Occurrences_Final.csv") # Read in occurrences
+formations <- read.csv (file = "Data/Formations_Final.csv")  #Read in formations
 data(stages)
 
 # Make parts Numeric
