@@ -140,13 +140,13 @@ plotMaker <- function(rel_data, binlist, ulabel){ # Takes relevant data for plot
           next
         }
         else{
-          rect(useful_bins[n], 0, useful_bins[n-1], 
+          rect(useful_bins[n], 0, useful_bins[n-1], # Dimensions of the coloured bin
           (max(rel_data, na.rm = TRUE)+(max(rel_data, na.rm = TRUE)*0.1)), 
           col = "#32323232", border = NA)
         }
       }
       else{
-        rect(useful_bins[n], 0, useful_bins[n+1], 
+        rect(useful_bins[n], 0, useful_bins[n+1], # Dimensions of the coloured bin
         (max(rel_data, na.rm = TRUE)+(max(rel_data, na.rm = TRUE)*0.1)),
         col = "#32323232", border = NA)
       }
@@ -266,31 +266,36 @@ newBins <- function(score_grid, formations, bin_limits, allbins, stages, smallam
 
 # Shows what formations look like through time in comparison to Stages and new Bins.
 # Requires formations, form_bins from newBins function and stages from DivDyn package
-FormationGraph <- function(formations, form_bins, stages, score_grid_2 = FALSE, draw_by = "Lat", Col = "None", legend = TRUE, STAGE = FALSE){ # Requires formations, form_bins from newBins function and stages from DivDyn package
+FormationGraph <- function(formations, form_bins, stages, score_grid_2 = FALSE, draw_by = "Lat", Col = "None", legend = TRUE, STAGE = FALSE){ # Requires formations, form_bins from newBins function and stages from DivDyn package. Has a number of user defined options:
+  # score_grid_2: When turned to TRUE, long ranging formations will appear in grey.
+  # draw_by: Arranges y axis (and formations) in different ways. Takes the arguments "Lat" (arrange by mean latitude of occurrences for formation), "Max_Age" (arrange by maximum age), and "Number" (arrange by arbitrary number).
+  # Col: Colours formations by either "Diversity" (taxic diversity per formation), "Occurrences" (number of occurrences per formation), or "None" (No colour)
+  # Legend: When TRUE, draws a legend.
+  # STAGE: When TRUE, draws stage bins rather than updated bins.
   TYPE <- c("Lat", "Max_Age", "Number")
   if (is.na(pmatch(draw_by, TYPE))){
-    stop("Invalid drawing method. Choose either 'Lat', 'Max_Age', or 'Number'.")
+    stop("Invalid drawing method. Choose either 'Lat', 'Max_Age', or 'Number'.") # If the user has entered a non-valid term for the "draw_by" argument, generate an error and warn the user. 
   }
   TYPE <- c("None", "Diversity", "Occurrences")
   if (is.na(pmatch(Col, TYPE))){
-    stop("Invalid colouring method. Choose either 'None', 'Diversity', or 'Occurrences'.")
+    stop("Invalid colouring method. Choose either 'None', 'Diversity', or 'Occurrences'.") # If the user has entered a non-valid term for the "Col" argument, generate an error and warn the user.
   }
-  fp1 <- data.frame(matrix(ncol = 5, nrow = 0))
-  fplong <- data.frame(matrix(ncol = 5, nrow = 0))
+  fp1 <- data.frame(matrix(ncol = 5, nrow = 0)) # Setup dataframe for recording formations with short durations
+  fplong <- data.frame(matrix(ncol = 5, nrow = 0)) # Setup dataframe for recording formations with long durations 
   for (f in 1:nrow(formations)){
-    if (formations$max_age[f] - formations$min_age[f] > # If formation range is less than the mean formation range
+    if (formations$max_age[f] - formations$min_age[f] > # If formation range is greater than the mean formation range, add to dataframe of long ranging formations
         mean(formations$max_age - formations$min_age)) {
-      if (draw_by == "Lat"){
-        fplong <- rbind(fplong, c(formations$min_age[f], formations$Mean_Lat[f], formations$max_age[f], formations$Mean_Lat[f], formations$Diversity[f], formations$Occurrences[f]))
+      if (draw_by == "Lat"){ # If user has set draw_by argument to "Lat"
+        fplong <- rbind(fplong, c(formations$min_age[f], formations$Mean_Lat[f], formations$max_age[f], formations$Mean_Lat[f], formations$Diversity[f], formations$Occurrences[f])) # Add latitude and bind other relevant information. 
       }
       if (draw_by == "Max_Age"){
-        fplong <- rbind(fplong, c(formations$min_age[f], formations$max_age[f], formations$max_age[f], formations$max_age[f], formations$Diversity[f], formations$Occurrences[f]))
+        fplong <- rbind(fplong, c(formations$min_age[f], formations$max_age[f], formations$max_age[f], formations$max_age[f], formations$Diversity[f], formations$Occurrences[f])) # Add Max Age and bind other relevant information. 
       }
       if (draw_by == "Number"){
-        fplong <- rbind(fplong, c(formations$min_age[f], formations$forbinning[f], formations$max_age[f], formations$forbinning[f], formations$Diversity[f], formations$Occurrences[f]))
+        fplong <- rbind(fplong, c(formations$min_age[f], formations$forbinning[f], formations$max_age[f], formations$forbinning[f], formations$Diversity[f], formations$Occurrences[f])) # Add Number of formation and bind other relevant information. 
       }
     }
-    else{
+    else{ # Otherwise, do the same things as above but add to dataframe of short formations
       if(draw_by == "Lat"){
         fp1 <- rbind(fp1, c(formations$min_age[f], formations$Mean_Lat[f], formations$max_age[f], formations$Mean_Lat[f], formations$Diversity[f], formations$Occurrences[f]))
       }
@@ -304,45 +309,45 @@ FormationGraph <- function(formations, form_bins, stages, score_grid_2 = FALSE, 
   names <- c("x1", "y1", "x2", "y2", "Diversity", "Occurrences")
   colnames(fp1) <- names
   colnames(fplong) <- names
-  fp <- rbind(fp1, fplong)
-  layout(matrix(1:1,nrow=1), widths=c(1,1), height = c(1,1))
-  if(Col == "Diversity"){
-    cols <- brewer.pal(5, "Reds")
-    colramp <- colorRampPalette(cols)
-    fp$Col <- colramp(5)[as.numeric(cut(fp$Diversity,breaks = 5))]
+  fp <- rbind(fp1, fplong) # Bind dataframes
+  layout(matrix(1:1,nrow=1), widths=c(1,1), height = c(1,1)) # Set layout
+  if(Col == "Diversity"){ #  If colouring by diversity
+    cols <- brewer.pal(5, "Reds") # Set colours
+    colramp <- colorRampPalette(cols) # Generate colour ramp
+    fp$Col <- colramp(5)[as.numeric(cut(fp$Diversity,breaks = 5))] # Colour taxic diversity of formations according to those colours
     if (legend == TRUE){
-      layout(matrix(1:2,nrow=1), widths=c(0.85,0.15), heights = c(1,1))
+      layout(matrix(1:2,nrow=1), widths=c(0.85,0.15), heights = c(1,1)) #  Draw a legend, if set to TRUE
     }
   }
-  if(Col == "Occurrences"){
-    cols <- brewer.pal(5, "Reds")
-    colramp <- colorRampPalette(cols)
-    fp$Col <- colramp(5)[as.numeric(cut(fp$Occurrences,breaks = 5))]
+  if(Col == "Occurrences"){ # If colouring by occurrences
+    cols <- brewer.pal(5, "Reds") # Set colours
+    colramp <- colorRampPalette(cols) # Generate colour ramp
+    fp$Col <- colramp(5)[as.numeric(cut(fp$Occurrences,breaks = 5))] # Colour number of occurrences of formations according to those colours
     if (legend == TRUE){
-      layout(matrix(1:2,nrow=1), widths=c(0.85,0.15), heights = c(1,1))
+      layout(matrix(1:2,nrow=1), widths=c(0.85,0.15), heights = c(1,1)) # Draw a legend, if set to TRUE
     }
   }
   par(mar = c(4.1, 4.1, 1, 1))
-  if (draw_by == "Lat"){
+  if (draw_by == "Lat"){ # Sets appropriate y axis for mean latitude of occurrences of each formation
     tsplot(stages, boxes=c("short","system"), # Generates plot using Divdyn package
            xlim=1:nrow(stages),  ylim=range(fp$y1 - 1, fp$y2 + 1), 
            shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75),
            ylab = "Formations by mean occurrence latitude")
   }
-  if (draw_by == "Max_Age"){
+  if (draw_by == "Max_Age"){ # Sets appropriate y axis for max age of each formation
     tsplot(stages, boxes=c("short","system"), # Generates plot using Divdyn package
            xlim=1:nrow(stages),  ylim=range(fp$y1 - 1, fp$y2 + 1), 
            shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75),
            ylab = "Formations by Maximum Age")
   }
-  if (draw_by == "Number"){
+  if (draw_by == "Number"){ # Sets appropriate y axis for aarbitrary number of each formation
     tsplot(stages, boxes=c("short","system"), # Generates plot using Divdyn package
            xlim=1:nrow(stages),  ylim=range(fp$y1 - 1, fp$y2 + 1), 
            shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75),
            ylab = "Formations (Number order)")
   }
-  if(STAGE == TRUE){
-    for(n in 1:nrow(stages)){ # draws new bins as coloured boxes for comparison to traditional bins
+  if(STAGE == TRUE){ # If user has set stage to true
+    for(n in 1:nrow(stages)){ # 
       if(((n %% 2) == 0) == TRUE) next
       else {
         if(n == 7){
@@ -350,7 +355,7 @@ FormationGraph <- function(formations, form_bins, stages, score_grid_2 = FALSE, 
             next
           }
           else{
-            rect(stages$top[max(nrow(stages))], 0, stages$bottom[max(nrow(stages))], 
+            rect(stages$top[max(nrow(stages))], 0, stages$bottom[max(nrow(stages))], # Draw grey boxes on graph as stages
                  max(fp$y2+1, na.rm = TRUE), col = "#32323232", border = NA)
           }
         }
@@ -361,7 +366,7 @@ FormationGraph <- function(formations, form_bins, stages, score_grid_2 = FALSE, 
       }
     }
   }
-  else{
+  else{ # Otherwise, use newly generated bins
     for(n in 1:length(form_bins)){ # draws new bins as coloured boxes for comparison to traditional bins
       if(((n %% 2) == 0) == TRUE) next
       else {
@@ -484,7 +489,7 @@ FormBin_M1 <- function(formations, binlist, Form_list, Quorum) {
     write.csv(sqsmst[q], file.path(paste("Results/", temp_name, ".csv", sep="")))
   }
 
-  # Plotting Raw Div and Sampling Proxies
+  # Plotting Raw Div and Sampling Proxies - Turn this back on if you want to combine Div and Collections plots
   #layout(matrix(1:2, ncol = 1), widths = 1, heights = c(2,2), respect = FALSE)
   #par(mar = c(0, 4.1, 4.1, 2.1))
   #with(binlist, tsplot(stages, ylab = "Raw Diversity",
@@ -659,7 +664,7 @@ FormBin_M2<- function(formations, binlist, Form_list, Quorum) {
     write.csv(sqsmst[q], file.path(paste("Results/", temp_name, ".csv", sep="")))
   }
   
-  # Plotting Raw Div and Sampling Proxies
+  # Plotting Raw Div and Sampling Proxies - Turn this back on if you want to combine Div and Collections plots
   #layout(matrix(1:2, ncol = 1), widths = 1, heights = c(2,2), respect = FALSE)
   #par(mar = c(0, 4.1, 4.1, 2.1))
   
@@ -902,7 +907,7 @@ FormBin_M3<- function(formations, binlist, Form_list, times=10, Quorum, run_SQS 
       write.csv(sqsmst[q], file.path(paste("Results/", temp_name, ".csv", sep="")))
     }
   }
-  # Plotting Raw Div and Sampling Proxies
+  # Plotting Raw Div and Sampling Proxies - Turn this back on if you want to combine Div and Collections plots
   #layout(matrix(1:2, ncol = 1), widths = 1, heights = c(2,2), respect = FALSE)
   #par(mar = c(0, 4.1, 4.1, 2.1))
   #with(binlist, tsplot(stages, ylab = "Raw Diversity",
