@@ -1,5 +1,10 @@
 #=============================================== FUNCTIONS FOR FORMATION BINNER =================================================
 #
+# Christopher D. Dean
+# 2019
+#
+#================================================================================================================================
+#
 #      Selection of functions that work with PBDB and Formation data to set up Formation Binning. Functions include those
 #      that visualise or retrieve data, those that setup and run Formation Binning, and those which run diversity analyses
 #      on inputted data with varying bin types. 
@@ -131,7 +136,7 @@ plotMaker <- function(rel_data, binlist, ulabel){ # Takes relevant data for plot
   useful_bins <- c(binlist$bottom, binlist$top[nrow(binlist)]) # Converts binlist into format useful for plotting
   tsplot(stages, boxes=c("short","system"), ylab = ulabel, # Creates plot using data from DivDyn package. 
          xlim=1:nrow(stages),  ylim=c(0,(max(rel_data, na.rm = TRUE)+(max(rel_data, na.rm = TRUE)*0.1))), 
-         shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75))  
+         shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=1.0))  
   for(n in 1:length(useful_bins)){ # For each bin
     if(((n %% 2) == 0) == TRUE) next # If the bin is even, skip it (allows for alternating colours of bins)
     else {
@@ -166,7 +171,7 @@ overlap_counter <- function(score_grid){ # Takes score_grid as input, generated 
   par(mar = c(4.1, 4.1, 1, 2.1))
    tsplot(stages, boxes=c("short","system"), # Generates plot using DivDyn package
          xlim=1:nrow(stages),  ylim=c(min(colMeans(score_grid), na.rm = TRUE), max(total_forms)+1), 
-         shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75),
+         shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=1.0),
          ylab = "Number of Formations") 
   lines(allbins, total_forms)
 }
@@ -239,7 +244,7 @@ newBins <- function(score_grid, formations, bin_limits, allbins, stages, smallam
   par(mar = c(4.1, 4.1, 1, 2.1))
   tsplot(stages, boxes=c("short","system"), # Generates plot using DivDyn package
          xlim=1:nrow(stages),  ylim=c(min(colMeans(score_grid), na.rm = TRUE), 100), 
-         shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75),
+         shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=1.0),
          ylab = "Bin Splitting Score") 
   lines(allbins, colMeans(score_grid)) # draws bin splitting score on plot
   
@@ -331,19 +336,19 @@ FormationGraph <- function(formations, form_bins, stages, score_grid_2 = FALSE, 
   if (draw_by == "Lat"){ # Sets appropriate y axis for mean latitude of occurrences of each formation
     tsplot(stages, boxes=c("short","system"), # Generates plot using Divdyn package
            xlim=1:nrow(stages),  ylim=range(fp$y1 - 1, fp$y2 + 1), 
-           shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75),
+           shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=1.0),
            ylab = "Formations by mean occurrence latitude")
   }
   if (draw_by == "Max_Age"){ # Sets appropriate y axis for max age of each formation
     tsplot(stages, boxes=c("short","system"), # Generates plot using Divdyn package
            xlim=1:nrow(stages),  ylim=range(fp$y1 - 1, fp$y2 + 1), 
-           shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75),
+           shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=1.0),
            ylab = "Formations by Maximum Age")
   }
   if (draw_by == "Number"){ # Sets appropriate y axis for aarbitrary number of each formation
     tsplot(stages, boxes=c("short","system"), # Generates plot using Divdyn package
            xlim=1:nrow(stages),  ylim=range(fp$y1 - 1, fp$y2 + 1), 
-           shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75),
+           shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=1.0),
            ylab = "Formations (Number order)")
   }
   if(STAGE == TRUE){ # If user has set stage to true
@@ -528,7 +533,7 @@ FormBin_M1 <- function(formations, binlist, Form_list, Quorum) {
   # Plotting SQS
   tsplot(stages, boxes=c("short","system"), 
          xlim=1:nrow(stages),  ylim=c(0,(max(sqsmst[length(sqsmst)][[1]][1])+(max(sqsmst[length(sqsmst)][[1]][1])*0.1))), 
-         shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75),
+         shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=1.0),
          ylab = "Subsampled Diversity")  
   for (q in 1:length(Quorum)){
     g.col <- gray.colors(length(Quorum), start = 0.9, end = 0.3, gamma = 2.2, alpha = NULL)
@@ -704,7 +709,7 @@ FormBin_M2<- function(formations, binlist, Form_list, Quorum) {
   tsplot(stages, boxes=c("short","system"), 
          xlim=1:nrow(stages),  ylim=c(0,(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+
                                   (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1))), 
-         shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75),
+         shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=1.0),
          ylab = "Subsampled Diversity")  
   for (q in 1:length(Quorum)){
     g.col <- gray.colors(length(Quorum), start = 0.9, end = 0.3, gamma = 2.2, alpha = NULL)
@@ -948,7 +953,7 @@ FormBin_M3<- function(formations, binlist, Form_list, times=10, Quorum, run_SQS 
     tsplot(stages, boxes=c("short","system"), 
            xlim=1:nrow(stages),  ylim=c(0,(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+
                                     (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1))), 
-           shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=0.75),
+           shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=1.0),
            ylab = "Subsampled Diversity")  
     for (q in 1:length(Quorum)){
       g.col <- gray.colors(length(Quorum), start = 0.9, end = 0.3, gamma = 2.2, alpha = NULL)
