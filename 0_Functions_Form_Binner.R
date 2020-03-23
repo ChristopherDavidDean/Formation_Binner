@@ -147,13 +147,13 @@ plotMaker <- function(rel_data, binlist, ulabel){ # Takes relevant data for plot
         else{
           rect(useful_bins[n], 0, useful_bins[n-1], # Dimensions of the coloured bin
           (max(rel_data, na.rm = TRUE)+(max(rel_data, na.rm = TRUE)*0.1)), 
-          col = "#32323232", border = NA)
+          col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
         }
       }
       else{
         rect(useful_bins[n], 0, useful_bins[n+1], # Dimensions of the coloured bin
         (max(rel_data, na.rm = TRUE)+(max(rel_data, na.rm = TRUE)*0.1)),
-        col = "#32323232", border = NA)
+        col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
       }
     }
   }
@@ -257,11 +257,11 @@ newBins <- function(score_grid, formations, bin_limits, allbins, stages, smallam
           next
         }
         else{
-          rect(useful_bins[n], 0, useful_bins[n-1], 100, col = "#32323232", border = NA)
+          rect(useful_bins[n], 0, useful_bins[n-1], 100, col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
         }
       }
       else{
-        rect(form_bins[n], 0, form_bins[n+1], 100-0.01, col = "#32323232", border = NA)
+        rect(form_bins[n], 0, form_bins[n+1], 100-0.01, col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
       }
     }
   }
@@ -288,8 +288,7 @@ FormationGraph <- function(formations, form_bins, stages, score_grid_2 = FALSE, 
   fp1 <- data.frame(matrix(ncol = 5, nrow = 0)) # Setup dataframe for recording formations with short durations
   fplong <- data.frame(matrix(ncol = 5, nrow = 0)) # Setup dataframe for recording formations with long durations 
   for (f in 1:nrow(formations)){
-    if (formations$max_age[f] - formations$min_age[f] > # If formation range is greater than the mean formation range, add to dataframe of long ranging formations
-        mean(formations$max_age - formations$min_age)) {
+    if (formations$Range[f] > quantile(formations$Range, 0.75, type = 7)) {
       if (draw_by == "Lat"){ # If user has set draw_by argument to "Lat"
         fplong <- rbind(fplong, c(formations$min_age[f], formations$Mean_Lat[f], formations$max_age[f], formations$Mean_Lat[f], formations$Diversity[f], formations$Occurrences[f])) # Add latitude and bind other relevant information. 
       }
@@ -314,41 +313,44 @@ FormationGraph <- function(formations, form_bins, stages, score_grid_2 = FALSE, 
   names <- c("x1", "y1", "x2", "y2", "Diversity", "Occurrences")
   colnames(fp1) <- names
   colnames(fplong) <- names
+  fp1$Type <- "Short"
+  fplong$Type <- "Long"
   fp <- rbind(fp1, fplong) # Bind dataframes
   layout(matrix(1:1,nrow=1), widths=c(1,1), height = c(1,1)) # Set layout
   if(Col == "Diversity"){ #  If colouring by diversity
-    cols <- brewer.pal(5, "Reds") # Set colours
-    colramp <- colorRampPalette(cols) # Generate colour ramp
-    fp$Col <- colramp(5)[as.numeric(cut(fp$Diversity,breaks = 5))] # Colour taxic diversity of formations according to those colours
+    graphcol <- rev(sequential_hcl(10, "BluYl"))
+    fp$Col <- graphcol[as.numeric(cut(fp$Diversity,breaks = 10))] # Colour taxic diversity of formations according to those colours
     if (legend == TRUE){
       layout(matrix(1:2,nrow=1), widths=c(0.85,0.15), heights = c(1,1)) #  Draw a legend, if set to TRUE
     }
   }
-  if(Col == "Occurrences"){ # If colouring by occurrences
-    cols <- brewer.pal(5, "Reds") # Set colours
-    colramp <- colorRampPalette(cols) # Generate colour ramp
-    fp$Col <- colramp(5)[as.numeric(cut(fp$Occurrences,breaks = 5))] # Colour number of occurrences of formations according to those colours
+  if(Col == "Occurrences"){ #  If colouring by diversity
+    graphcol <- rev(sequential_hcl(10, "BluYl"))
+    fp$Col <- graphcol[as.numeric(cut(fp$Occurrences,breaks = 10))] # Colour taxic diversity of formations according to those colours
     if (legend == TRUE){
-      layout(matrix(1:2,nrow=1), widths=c(0.85,0.15), heights = c(1,1)) # Draw a legend, if set to TRUE
+      layout(matrix(1:2,nrow=1), widths=c(0.85,0.15), heights = c(1,1)) #  Draw a legend, if set to TRUE
     }
   }
   par(mar = c(4.1, 4.1, 1, 1))
   if (draw_by == "Lat"){ # Sets appropriate y axis for mean latitude of occurrences of each formation
     tsplot(stages, boxes=c("short","system"), # Generates plot using Divdyn package
            xlim=1:nrow(stages),  ylim=range(fp$y1 - 1, fp$y2 + 1), 
-           shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=1.0),
+           prop = 0.08, plot.args = list(cex.lab = 1.5, cex.axis = 1.5),
+           shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=1.5),
            ylab = "Formations by mean occurrence latitude")
   }
   if (draw_by == "Max_Age"){ # Sets appropriate y axis for max age of each formation
     tsplot(stages, boxes=c("short","system"), # Generates plot using Divdyn package
            xlim=1:nrow(stages),  ylim=range(fp$y1 - 1, fp$y2 + 1), 
-           shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=1.0),
+           prop = 0.08, plot.args = list(cex.lab = 1.5, cex.axis = 1.5),
+           shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=1.5),
            ylab = "Formations by Maximum Age")
   }
   if (draw_by == "Number"){ # Sets appropriate y axis for aarbitrary number of each formation
     tsplot(stages, boxes=c("short","system"), # Generates plot using Divdyn package
            xlim=1:nrow(stages),  ylim=range(fp$y1 - 1, fp$y2 + 1), 
-           shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=1.0),
+           prop = 0.08, plot.args = list(cex.lab = 1.5, cex.axis = 1.5),
+           shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=1.5),
            ylab = "Formations (Number order)")
   }
   if(STAGE == TRUE){ # If user has set stage to true
@@ -361,12 +363,12 @@ FormationGraph <- function(formations, form_bins, stages, score_grid_2 = FALSE, 
           }
           else{
             rect(stages$top[max(nrow(stages))], 0, stages$bottom[max(nrow(stages))], # Draw grey boxes on graph as stages
-                 max(fp$y2+1, na.rm = TRUE), col = "#32323232", border = NA)
+                 max(fp$y2+1, na.rm = TRUE), col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
           }
         }
         else{
           rect(stages$top[n], 0, stages$bottom[n], 
-               max(fp$y2+1, na.rm = TRUE), col = "#32323232", border = NA)
+               max(fp$y2+1, na.rm = TRUE), col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
         }
       }
     }
@@ -381,49 +383,56 @@ FormationGraph <- function(formations, form_bins, stages, score_grid_2 = FALSE, 
           }
           else{
             rect(useful_bins[n], 0, useful_bins[n-1], 
-                 max(fp$y2+1, na.rm = TRUE), col = "#32323232", border = NA)
+                 max(fp$y2+1, na.rm = TRUE), col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
           }
         }
         else{
           rect(form_bins[n], 0, form_bins[n+1], 
-               max(fp$y2+1, na.rm = TRUE), col = "#32323232", border = NA)
+               max(fp$y2+1, na.rm = TRUE), col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
         }
       }
     }
   }
   if (score_grid_2 == TRUE){
-    segments(fplong$x1, fplong$y1, fplong$x2, fplong$y2, lwd = 2, col = "grey") # Plots formations as lines showing their duration
+    # segments(fplong$x1, fplong$y1, fplong$x2, fplong$y2, lwd = 2, col = "grey") # Plots formations as lines showing their duration
     if (Col == "Diversity" | Col == "Occurrences"){
-      segments(fp1$x1, fp1$y1, fp1$x2, fp1$y2, lwd = 2, col = fp$Col) 
+      segments(fp1$x1, fp1$y1, fp1$x2, fp1$y2, lwd = 5, col = "grey") 
+      segments(fp1$x1, fp1$y1, fp1$x2, fp1$y2, lwd = 3, col = fp$Col[fp$Type == "Short"]) 
+      rect(fplong$x1, fplong$y1-0.05, fplong$x2, fplong$y2+0.05, angle = 45, col = "lightgrey", density = 40, border = NA, lwd = 5)
+      rect(fplong$x1, fplong$y1-0.05, fplong$x2, fplong$y2+0.05, angle = 45, col = fp$Col[fp$Type == "Long"], density = 40, border = NA, lwd = 3)
     }
     else{
-      segments(fp1$x1, fp1$y1, fp1$x2, fp1$y2, lwd = 2) 
+      segments(fp1$x1, fp1$y1, fp1$x2, fp1$y2, lwd = 3) 
+      rect(fplong$x1, fplong$y1-0.05, fplong$x2, fplong$y2+0.05, angle = 45, col = "grey", density = 40, border = NA, lwd = 3)
     }
   }
   else{
     if (Col == "Diversity" | Col == "Occurrences"){
-      segments(fp$x1, fp$y1, fp$x2, fp$y2, lwd = 2, col = fp$Col) 
+      segments(fp$x1, fp$y1, fp$x2, fp$y2, lwd = 5, col = "grey") 
+      segments(fp$x1, fp$y1, fp$x2, fp$y2, lwd = 3, col = fp$Col) 
     }
     else{
-      segments(fp$x1, fp$y1, fp$x2, fp$y2, lwd = 2) 
+      segments(fp$x1, fp$y1, fp$x2, fp$y2, lwd = 3) 
     }
   }
+  box(lwd=2)
   if (Col == "Diversity" && legend == TRUE){
     par(mar = c(4.1, 0.5, 1, 0))
-    legend_image <- as.raster(matrix(rev(colramp(5)), ncol=1))
+    legend_image <- as.raster(matrix(rev(graphcol), ncol=1))
     plot(c(0,4),c(0,1),type = 'n', axes = F, xlab = '', ylab = '')
-    title("Diversity", cex.main = 0.9, line = -5, adj = 0)
-    text(x=1.1, y = seq(0.25,0.75,l=5), cex = 0.9, labels = round(seq(0,max(fp$Diversity),l=5)))
+    title("Diversity", cex.main = 1.5, line = -9, adj = 0)
+    text(x=1.1, y = seq(0.25,0.75,l=5), cex = 1.25, labels = round(seq(0,max(fp$Diversity),l=5)))
     rasterImage(legend_image, 0, 0.25, 0.5, 0.75)
   }
   if (Col == "Occurrences" && legend == TRUE){
     par(mar = c(4.1, 0.5, 1, 0))
-    legend_image <- as.raster(matrix(rev(colramp(5)), ncol=1))
+    legend_image <- as.raster(matrix(rev(graphcol), ncol=1))
     plot(c(0,4),c(0,1),type = 'n', axes = F, xlab = '', ylab = '')
-    title("Occurrences", cex.main = 0.9, line = -5, adj = 0)
-    text(x=1.1, y = seq(0.25,0.75,l=5), cex = 0.9, labels = round(seq(0,max(fp$Occurrences),l=5)))
+    title("Occurrences", cex.main = 1.5, line = -9, adj = 0)
+    text(x=1.1, y = seq(0.25,0.75,l=5), cex = 1.25, labels = round(seq(0,max(fp$Occurrences),l=5)))
     rasterImage(legend_image, 0, 0.25, 0.5, 0.75)
   }
+  p <<- recordPlot()
 }
 
 
@@ -511,13 +520,13 @@ FormBin_M1 <- function(formations, binlist, Form_list, Quorum) {
   #      else{
   #        rect(useful_bins[n], 0, useful_bins[n-1], 
   #        (max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1)), 
-  #        col = "#32323232", border = NA)
+  #        col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
   #      }
   #    }
   #    else{
   #      rect(useful_bins[n], 0, useful_bins[n+1], 
   #      (max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1)), 
-  #      col = "#32323232", border = NA)
+  #      col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
   #    }
   #  }
   #}
@@ -554,13 +563,13 @@ FormBin_M1 <- function(formations, binlist, Form_list, Quorum) {
         else{
           rect(useful_bins[n], 0, useful_bins[n-1], 
           (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1)), 
-          col = "#32323232", border = NA)
+          col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
         }
       }
       else{
         rect(form_bins[n], 0, form_bins[n+1], 
         (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1)), 
-        col = "#32323232", border = NA)
+        col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
       }
     }
   }
@@ -687,13 +696,13 @@ FormBin_M2<- function(formations, binlist, Form_list, Quorum) {
   #      else{
   #        rect(useful_bins[n], 0, useful_bins[n-1], 
   #        (max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1)), 
-  #        col = "#32323232", border = NA)
+  #        col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
   #      }
   #    }
   #    else{
   #      rect(useful_bins[n], 0, useful_bins[n+1], 
   #      (max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1)), 
-  #      col = "#32323232", border = NA)
+  #      col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
   #    }
   #  }
   #}
@@ -744,13 +753,13 @@ FormBin_M2<- function(formations, binlist, Form_list, Quorum) {
         else{
           rect(useful_bins[n], 0, useful_bins[n-1], 
           (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1)), 
-          col = "#32323232", border = NA)
+          col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
         }
       }
       else{
         rect(form_bins[n], 0, form_bins[n+1], 
         (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1)), 
-        col = "#32323232", border = NA)
+        col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
       }
     }
   }
@@ -930,13 +939,13 @@ FormBin_M3<- function(formations, binlist, Form_list, times=10, Quorum, run_SQS 
   #      else{
   #        rect(useful_bins[n], 0, useful_bins[n-1], 
   #        (max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1)), 
-  #        col = "#32323232", border = NA)
+  #        col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
   #      }
   #    }
   #    else{
   #      rect(useful_bins[n], 0, useful_bins[n+1], 
   #      (max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1)), 
-  #      col = "#32323232", border = NA)
+  #      col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
   #    }
   #  }
   #}
@@ -988,13 +997,13 @@ FormBin_M3<- function(formations, binlist, Form_list, times=10, Quorum, run_SQS 
           else{
             rect(useful_bins[n], 0, useful_bins[n-1], 
             (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1)), 
-            col = "#32323232", border = NA)
+            col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
           }
         }
         else{
           rect(form_bins[n], 0, form_bins[n+1], 
           (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1)), 
-          col = "#32323232", border = NA)
+          col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
         }
       }
     }
