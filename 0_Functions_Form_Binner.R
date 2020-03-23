@@ -83,12 +83,12 @@ Scoring_Grid_1 <- function(formations, res=0.01) { # Requires formation informat
 
 #==== Scoring_Grid_2 ====
 
-# Create a scoring grid ignoring formations with length longer than mean formation length. In his way, long ranging formations don't 
+# Create a scoring grid ignoring formations with length longer than the 3rd quantile. In his way, long ranging formations don't 
 # bias the creation of bins, especially when they appear during the same time interval.
 Scoring_Grid_2 <- function(formations, res=0.01) { # Requires formation information. Resolution of time lines is set automatically at 0.01, but can be adjusted.
   max_age <- max(formations$max_age) #finds max age of all formations
   min_age <- min(formations$min_age) #finds min age of all formations
-  allbins <- seq(min_age-1.0045, max_age+1.0045, res) # Makes 1ma bins in sequence based on max/min ages. 0.0001 added to ensure formation is never exactly equivalent to a bin.
+  allbins <- seq(min_age-1.0045, max_age+1.0045, res) # Makes 1ma bins in sequence based on max/min ages. 0.00045 added to ensure formation is never exactly equivalent to a bin.
   
   score_grid <- matrix(data = NA, nrow = nrow(formations), ncol = length(allbins)) # makes a matrix for the scoring of each time line in terms of how good it is to be a bin boundary
   colnames(score_grid) <- allbins # All time lines
@@ -98,8 +98,7 @@ Scoring_Grid_2 <- function(formations, res=0.01) { # Requires formation informat
   for(i in allbins) { # Go through each time line
     counter <- sum(counter,1)
     for (f in 1:nrow(formations)){ # go through each formation 
-      if (formations$max_age[f] - formations$min_age[f] < # If formation range is less than the mean formation range
-          mean(formations$max_age - formations$min_age)) {
+      if (formations$Range[f] < quantile(formations$Range, 0.75, type = 7)) { # If formation range is less than the 3rd Quantile
         if (i <= formations$max_age[f] && i >= formations$min_age[f]){ # if timeline is between max/min age of a formation (i.e. formation crosses that line)
           a <- formations$max_age[f] - i # Work out how much of formation is older than timeline
           b <- i - formations$min_age[f] # Work out how much of formation is younger than timeline
