@@ -135,7 +135,8 @@ plotMaker <- function(rel_data, binlist, ulabel){ # Takes relevant data for plot
   useful_bins <- c(binlist$bottom, binlist$top[nrow(binlist)]) # Converts binlist into format useful for plotting
   tsplot(stages, boxes=c("short","system"), ylab = ulabel, # Creates plot using data from DivDyn package. 
          xlim=1:nrow(stages),  ylim=c(0,(max(rel_data, na.rm = TRUE)+(max(rel_data, na.rm = TRUE)*0.1))), 
-         shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=1.0))  
+         prop = 0.08, plot.args = list(cex.lab = 1.5, cex.axis = 1.5),
+         shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=1.5))  
   for(n in 1:length(useful_bins)){ # For each bin
     if(((n %% 2) == 0) == TRUE) next # If the bin is even, skip it (allows for alternating colours of bins)
     else {
@@ -156,7 +157,8 @@ plotMaker <- function(rel_data, binlist, ulabel){ # Takes relevant data for plot
       }
     }
   }
-  lines(binlist$mid, rel_data, type = "o", pch = 21, col = "black", bg = "grey", lwd = 1) # Adds lines from relevant data provided.
+  lines(binlist$mid, rel_data, type = "o", pch = 21, col = "black", bg = "grey", lwd = 2) # Adds lines from relevant data provided.
+  box(lwd=2)
 }
 
 #=============================================== OVERLAP_COUNTER ==============================================================
@@ -170,9 +172,12 @@ overlap_counter <- function(score_grid){ # Takes score_grid as input, generated 
   par(mar = c(4.1, 4.1, 1, 2.1))
    tsplot(stages, boxes=c("short","system"), # Generates plot using DivDyn package
          xlim=1:nrow(stages),  ylim=c(min(colMeans(score_grid), na.rm = TRUE), max(total_forms)+1), 
-         shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=1.0),
+         prop = 0.08, plot.args = list(cex.lab = 1.5, cex.axis = 1.5),
+         shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=1.5),
          ylab = "Number of Formations") 
+   
   lines(allbins, total_forms)
+  box(lwd=2)
 }
 
 #=============================================== NEWBINS ==============================================================
@@ -243,11 +248,9 @@ newBins <- function(score_grid, formations, bin_limits, allbins, stages, smallam
   par(mar = c(4.1, 4.1, 1, 2.1))
   tsplot(stages, boxes=c("short","system"), # Generates plot using DivDyn package
          xlim=1:nrow(stages),  ylim=c(min(colMeans(score_grid), na.rm = TRUE), 100), 
-         shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=1.0),
+         prop = 0.08, plot.args = list(cex.lab = 1.5, cex.axis = 1.5),
+         shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=1.5),
          ylab = "Bin Splitting Score") 
-  lines(allbins, colMeans(score_grid)) # draws bin splitting score on plot
-  
-  
   for(n in 1:length(form_bins)){ # draws new bins as coloured boxes for comparison to traditional bins
     if(((n %% 2) == 0) == TRUE) next
     else {
@@ -264,6 +267,8 @@ newBins <- function(score_grid, formations, bin_limits, allbins, stages, smallam
       }
     }
   }
+  lines(allbins, colMeans(score_grid), lwd = 1.75) # draws bin splitting score on plot
+  box(lwd=2)
 }
 
 #=============================================== FORMATIONGRAPH =======================================================
@@ -434,7 +439,6 @@ FormationGraph <- function(formations, form_bins, stages, score_grid_2 = FALSE, 
   p <<- recordPlot()
 }
 
-
 #=============================================== DIVERSITY METHODS ====================================================
 
 # A variety of methods which generate diversity curves based on the generated Formation Bins. 
@@ -465,7 +469,6 @@ FormBin_M1 <- function(formations, binlist, Form_list, Quorum) {
     df <- do.call("rbind", M1_List)
     
     # Code for subsampling
-    niter <- 100 # number of SQS iterations
     SQS <- subsample(df,iter=100, q=Quorum[q],tax="occurrence.genus_name", bin="bin_no", 
                     coll = 'collection_no', output="dist", type="sqs", 
                     duplicates = TRUE, useFailed = TRUE)
@@ -541,16 +544,9 @@ FormBin_M1 <- function(formations, binlist, Form_list, Quorum) {
   # Plotting SQS
   tsplot(stages, boxes=c("short","system"), 
          xlim=1:nrow(stages),  ylim=c(0,(max(sqsmst[length(sqsmst)][[1]][1])+(max(sqsmst[length(sqsmst)][[1]][1])*0.1))), 
-         shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=1.0),
+         prop = 0.08, plot.args = list(cex.lab = 1.5, cex.axis = 1.5),
+         shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=1.5),
          ylab = "Subsampled Diversity")  
-  for (q in 1:length(Quorum)){
-    g.col <- gray.colors(length(Quorum), start = 0.9, end = 0.3, gamma = 2.2, alpha = NULL)
-    lines(binlist$mid, sqsmst[[q]]$sqsaverage, type = 'o', col = g.col[q], 
-          pch = 21, bg = "grey")
-    polygon(x = c(binlist$mid, rev(binlist$mid)),
-            y = c(sqsmst[[q]]$sqsmaxsd, rev(sqsmst[[q]]$sqsminsd)), 
-            col =  adjustcolor(g.col[q], alpha.f = 0.40), border = NA)
-  }
   
   for(n in 1:length(form_bins)){
     if(((n %% 2) == 0) == TRUE) next
@@ -561,17 +557,27 @@ FormBin_M1 <- function(formations, binlist, Form_list, Quorum) {
         }
         else{
           rect(useful_bins[n], 0, useful_bins[n-1], 
-          (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1)), 
-          col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
+               (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1)), 
+               col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
         }
       }
       else{
         rect(form_bins[n], 0, form_bins[n+1], 
-        (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1)), 
-        col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
+             (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1)), 
+             col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
       }
     }
   }
+  
+  for (q in 1:length(Quorum)){
+    g.col <- (sequential_hcl(5, "YlGn"))
+    polygon(x = c(binlist$mid, rev(binlist$mid)),
+            y = c(sqsmst[[q]]$sqsmaxsd, rev(sqsmst[[q]]$sqsminsd)), 
+            col =  adjustcolor(g.col[q], alpha.f = 0.40), border = NA)
+    lines(binlist$mid, sqsmst[[q]]$sqsaverage, type = 'o', col = g.col[q], 
+          pch = 21, bg = g.col[q], lwd = 2, cex = 1.5)
+  }
+  box(lwd=2)
 }
 
 #==== FormBin_M2 ====
@@ -631,7 +637,6 @@ FormBin_M2<- function(formations, binlist, Form_list, Quorum) {
     df <- do.call("rbind", M2_List)
     
     # Code for subsampling
-    niter <- 100 # number of SQS iterations
     SQS <- subsample(df,iter=100, q=Quorum[q],tax="occurrence.genus_name", bin="bin_no", 
                        coll = 'collection_no', output="dist", type="sqs", 
                        duplicates = TRUE, useFailed = TRUE)
@@ -717,10 +722,33 @@ FormBin_M2<- function(formations, binlist, Form_list, Quorum) {
   tsplot(stages, boxes=c("short","system"), 
          xlim=1:nrow(stages),  ylim=c(0,(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+
                                   (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1))), 
-         shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=1.0),
+         prop = 0.08, plot.args = list(cex.lab = 1.5, cex.axis = 1.5),
+         shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=1.5),
          ylab = "Subsampled Diversity")  
+  
+  for(n in 1:length(form_bins)){
+    if(((n %% 2) == 0) == TRUE) next
+    else {
+      if(n == length(form_bins)){
+        if(nrow(binlist) %% 2 == 0){
+          next
+        }
+        else{
+          rect(useful_bins[n], 0, useful_bins[n-1], 
+               (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1)), 
+               col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
+        }
+      }
+      else{
+        rect(form_bins[n], 0, form_bins[n+1], 
+             (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1)), 
+             col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
+      }
+    }
+  }
+  
   for (q in 1:length(Quorum)){
-    g.col <- gray.colors(length(Quorum), start = 0.9, end = 0.3, gamma = 2.2, alpha = NULL)
+    g.col <- (sequential_hcl(5, "YlGn"))
     enc <- rle(!is.na(sqsmst[[q]]$sqsaverage))
     endIdxs <- cumsum(enc$lengths)
     for(i in 1:length(enc$lengths)){
@@ -738,30 +766,11 @@ FormBin_M2<- function(formations, binlist, Form_list, Quorum) {
     
         polygon(x = x, y = y, col = adjustcolor(g.col[q], alpha.f = 0.40), border = NA)
         lines(binlist$mid, sqsmst[[q]]$sqsaverage, type = 'o', col = g.col[q], 
-          pch = 21, bg = "grey")
+          pch = 21, bg = g.col[q], lwd = 2, cex = 1.5)
       }
     }
   }
-  for(n in 1:length(form_bins)){
-    if(((n %% 2) == 0) == TRUE) next
-    else {
-      if(n == length(form_bins)){
-        if(nrow(binlist) %% 2 == 0){
-          next
-        }
-        else{
-          rect(useful_bins[n], 0, useful_bins[n-1], 
-          (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1)), 
-          col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
-        }
-      }
-      else{
-        rect(form_bins[n], 0, form_bins[n+1], 
-        (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1)), 
-        col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
-      }
-    }
-  }
+  box(lwd=2)
 }
 
 
@@ -837,7 +846,7 @@ FormBin_M3<- function(formations, binlist, Form_list, times=10, Quorum, run_SQS 
         
       if (run_SQS == TRUE){
         # Code for subsampling, and skipping errors with little data - Not very useful here, but useful for last method. Kept in just in case.
-        SQS_test <- try(subsample(df,iter=niter, q=Quorum[q],tax="occurrence.genus_name", bin="bin_no", 
+        SQS_test <- try(subsample(df,iter=100, q=Quorum[q],tax="occurrence.genus_name", bin="bin_no", 
                            coll = 'collection_no', output="dist", type="sqs", 
                            duplicates = TRUE, useFailed = TRUE), silent = TRUE)
         if(class(SQS_test)=='try-error'){
@@ -961,10 +970,31 @@ FormBin_M3<- function(formations, binlist, Form_list, times=10, Quorum, run_SQS 
     tsplot(stages, boxes=c("short","system"), 
            xlim=1:nrow(stages),  ylim=c(0,(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+
                                     (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1))), 
-           shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=1.0),
+           prop = 0.08, plot.args = list(cex.lab = 1.5, cex.axis = 1.5),
+           shading=NULL, boxes.col=c("col","systemCol"), labels.args=list(cex=1.5),
            ylab = "Subsampled Diversity")  
+    for(n in 1:length(form_bins)){
+      if(((n %% 2) == 0) == TRUE) next
+      else {
+        if(n == length(form_bins)){
+          if(nrow(binlist) %% 2 == 0){
+            next
+          }
+          else{
+            rect(useful_bins[n], 0, useful_bins[n-1], 
+                 (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1)), 
+                 col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
+          }
+        }
+        else{
+          rect(form_bins[n], 0, form_bins[n+1], 
+               (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1)), 
+               col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
+        }
+      }
+    }
     for (q in 1:length(Quorum)){
-      g.col <- gray.colors(length(Quorum), start = 0.9, end = 0.3, gamma = 2.2, alpha = NULL)
+      g.col <- (sequential_hcl(5, "YlGn"))
       enc <- rle(!is.na(sqsmst[[q]]$allsqsaverage))
       endIdxs <- cumsum(enc$lengths)
       for(i in 1:length(enc$lengths)){
@@ -979,34 +1009,15 @@ FormBin_M3<- function(formations, binlist, Form_list, times=10, Quorum, run_SQS 
       
           x <- c(subdat, rev(subdat))
           y <- c(submax, rev(submin))
-      
+          
           polygon(x = x, y = y, col = adjustcolor(g.col[q], alpha.f = 0.40), border = NA)
           lines(binlist$mid, sqsmst[[q]]$allsqsaverage, type = 'o', col = g.col[q], 
-            pch = 21, bg = "grey")
-        }
-      }
-    }
-    for(n in 1:length(form_bins)){
-      if(((n %% 2) == 0) == TRUE) next
-      else {
-        if(n == length(form_bins)){
-          if(nrow(binlist) %% 2 == 0){
-            next
-          }
-          else{
-            rect(useful_bins[n], 0, useful_bins[n-1], 
-            (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1)), 
-            col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
-          }
-        }
-        else{
-          rect(form_bins[n], 0, form_bins[n+1], 
-          (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1)), 
-          col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
+                pch = 21, bg = g.col[q], lwd = 2, cex = 1.5)
         }
       }
     }
   }
+  box(lwd=2)
   beepr::beep(sound = 3)
   proc.time() - ptm
 }
