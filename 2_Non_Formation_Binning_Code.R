@@ -44,13 +44,13 @@ plotrect <- function(binDframe, ydata){
         else{
           rect(binDframe$LAD[n], 0, binDframe$FAD[n], # Dimensions of the coloured bin
                (max(ydata, na.rm = TRUE)+(max(ydata, na.rm = TRUE)*0.1)), 
-               col = "#32323232", border = NA)
+               col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
         }
       }
       else{
         rect(binDframe$LAD[n], 0, binDframe$FAD[n], # Dimensions of the coloured bin
              (max(ydata, na.rm = TRUE)+(max(ydata, na.rm = TRUE)*0.1)),
-             col = "#32323232", border = NA)
+             col = rgb(0.89,0.89,0.89,alpha=0.5), border = NA)
       }
     }
   }
@@ -154,33 +154,40 @@ for (q in 1:length(Quorum)){
 par(mfrow=c(1,1), mar = c(4.1, 4.1, 1, 2.1))
 tsplot(stages, boxes=c("short","system"), ylab = "Raw Diversity",
        xlim=75:81,  ylim=c(0,(max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1))), 
-        boxes.col=c("col","systemCol"), labels.args=list(cex=1.0))
+       prop = 0.08, plot.args = list(cex.lab = 1.5, cex.axis = 1.5),
+        boxes.col=c("col","systemCol"), labels.args=list(cex=1.5))
 plotrect(binDframe, bin_info$SIBs)
-lines(binDframe$mid, bin_info$SIBs, type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
+lines(binDframe$mid, bin_info$SIBs, type = "o", pch = 21, col = "black", bg = "grey", lwd = 2)
+box(lwd=2)
 
 tsplot(stages, boxes=c("short","system"), ylab = "Number of Collections",
        xlim=75:81,  ylim=c(0,(max(bin_info$colls, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1))), 
-      boxes.col=c("col","systemCol"), labels.args=list(cex=1.0))
+       prop = 0.08, plot.args = list(cex.lab = 1.5, cex.axis = 1.5),
+      boxes.col=c("col","systemCol"), labels.args=list(cex=1.5))
 plotrect(binDframe, bin_info$colls)
-lines(binDframe$mid, bin_info$colls, type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
+lines(binDframe$mid, bin_info$colls, type = "o", pch = 21, col = "black", bg = "grey", lwd = 2)
+box(lwd=2)
 
 # Goods u
 par(mfrow=c(1,1), mar = c(4.1, 4.1, 1, 2.1))
 tsplot(stages, boxes=c("short","system"), ylab = "Good's U", # Creates plot using data from DivDyn package. 
        xlim=75:81,  ylim=c(0,(max(bin_info$u, na.rm = TRUE)+(max(bin_info$u, na.rm = TRUE)*0.1))), 
-       boxes.col=c("col","systemCol"), labels.args=list(cex=1.0))  
+       prop = 0.08, plot.args = list(cex.lab = 1.5, cex.axis = 1.5),
+       boxes.col=c("col","systemCol"), labels.args=list(cex=1.5))  
 plotrect(binDframe, bin_info$u)
-lines(binDframe$mid, bin_info$u, type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
+lines(binDframe$mid, bin_info$u, type = "o", pch = 21, col = "black", bg = "grey", lwd = 2)
+box(lwd=2)
 
 #=== Plotting SQS ===
 tsplot(stages, boxes=c("short","system"), 
        xlim=75:81,  ylim=c(0,(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+
                                 (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1))), 
-       boxes.col=c("col","systemCol"), labels.args=list(cex=1.0),
+       prop = 0.08, plot.args = list(cex.lab = 1.5, cex.axis = 1.5),
+       boxes.col=c("col","systemCol"), labels.args=list(cex=1.5),
        ylab = "Subsampled Diversity")  
 plotrect(binDframe, sqsmst[[length(sqsmst)]]$MeanSQS)
 for (q in 1:length(Quorum)){
-  g.col <- gray.colors(length(Quorum), start = 0.9, end = 0.3, gamma = 2.2, alpha = NULL)
+  g.col <- (sequential_hcl(5, "YlGn"))
   enc <- rle(!is.na(sqsmst[[q]]$MeanSQS))
   endIdxs <- cumsum(enc$lengths)
   for(i in 1:length(enc$lengths)){
@@ -198,10 +205,11 @@ for (q in 1:length(Quorum)){
       
       polygon(x = x, y = y, col = adjustcolor(g.col[q], alpha.f = 0.40), border = NA)
       lines(binDframe$mid, sqsmst[[q]]$MeanSQS, type = 'o', col = g.col[q], 
-            pch = 21, bg = "grey")
+            pch = 21, bg = g.col[q], lwd = 2, cex = 1.5)
     }
   }
 }
+box(lwd=2)
 
 #=== Recording Results ===
 dir.create(paste0("Results"), showWarnings = FALSE) #stops warnings if folder already exists
@@ -311,32 +319,40 @@ sqsmst[[3]][sqsmst[[3]] == 0] <- NA
 par(mfrow=c(1,1), mar = c(4.1, 4.1, 1, 2.1))
 tsplot(stages, boxes=c("short","system"), ylab = "Raw Diversity",
        xlim=75:81,  ylim=c(0,(max(bin_info$SIBs, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1))), 
-       boxes.col=c("col","systemCol"), labels.args=list(cex=1.0))
+       prop = 0.08, plot.args = list(cex.lab = 1.5, cex.axis = 1.5),
+       boxes.col=c("col","systemCol"), labels.args=list(cex=1.5))
 plotrect(binDframe, bin_info$SIBs)
-lines(binDframe$mid, bin_info$SIBs, type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
+lines(binDframe$mid, bin_info$SIBs, type = "o", pch = 21, col = "black", bg = "grey", lwd = 2)
+box(lwd=2)
+
 
 tsplot(stages, boxes=c("short","system"), ylab = "Number of Collections",
        xlim=75:81,  ylim=c(0,(max(bin_info$colls, na.rm = TRUE)+(max(bin_info$SIBs, na.rm = TRUE)*0.1))), 
-       boxes.col=c("col","systemCol"), labels.args=list(cex=1.0))
+       prop = 0.08, plot.args = list(cex.lab = 1.5, cex.axis = 1.5),
+       boxes.col=c("col","systemCol"), labels.args=list(cex=1.5))
 plotrect(binDframe, bin_info$colls)
-lines(binDframe$mid, bin_info$colls, type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
+lines(binDframe$mid, bin_info$colls, type = "o", pch = 21, col = "black", bg = "grey", lwd = 2)
+box(lwd=2)
 
 par(mfrow=c(1,1), mar = c(4.1, 4.1, 1, 2.1))
 tsplot(stages, boxes=c("short","system"), ylab = "Good's U", # Creates plot using data from DivDyn package. 
        xlim=75:81,  ylim=c(0,(max(bin_info$u, na.rm = TRUE)+(max(bin_info$u, na.rm = TRUE)*0.1))), 
-       boxes.col=c("col","systemCol"), labels.args=list(cex=1.0)) 
+       prop = 0.08, plot.args = list(cex.lab = 1.5, cex.axis = 1.5),
+       boxes.col=c("col","systemCol"), labels.args=list(cex=1.5)) 
 plotrect(binDframe, bin_info$u)
-lines(binDframe$mid, bin_info$u, type = "o", pch = 21, col = "black", bg = "grey", lwd = 1)
+lines(binDframe$mid, bin_info$u, type = "o", pch = 21, col = "black", bg = "grey", lwd = 2)
+box(lwd=2)
 
 #=== Plotting SQS ===
 tsplot(stages, boxes=c("short","system"), 
        xlim=75:81,  ylim=c(0,(max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)+
                                 (max(sqsmst[length(sqsmst)][[1]][1], na.rm = TRUE)*0.1))), 
-       boxes.col=c("col","systemCol"), labels.args=list(cex=1.0),
+       prop = 0.08, plot.args = list(cex.lab = 1.5, cex.axis = 1.5),
+       boxes.col=c("col","systemCol"), labels.args=list(cex=1.5),
        ylab = "Subsampled Diversity") 
 plotrect(binDframe, sqsmst[[length(sqsmst)]]$MeanSQS)
 for (q in 1:length(Quorum)){
-  g.col <- gray.colors(length(Quorum), start = 0.9, end = 0.3, gamma = 2.2, alpha = NULL)
+  g.col <- (sequential_hcl(5, "YlGn"))
   enc <- rle(!is.na(sqsmst[[q]]$MeanSQS))
   endIdxs <- cumsum(enc$lengths)
   for(i in 1:length(enc$lengths)){
@@ -354,10 +370,11 @@ for (q in 1:length(Quorum)){
       
       polygon(x = x, y = y, col = adjustcolor(g.col[q], alpha.f = 0.40), border = NA)
       lines(binDframe$mid, sqsmst[[q]]$MeanSQS, type = 'o', col = g.col[q], 
-            pch = 21, bg = "grey")
+            pch = 21, bg = g.col[q], lwd = 2, cex = 1.5)
     }
   }
 }
+box(lwd=2)
 
 #=== Recording Results ===
 dir.create(paste0("Results"), showWarnings = FALSE) #stops warnings if folder already exists
