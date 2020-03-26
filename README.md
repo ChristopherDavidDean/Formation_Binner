@@ -39,9 +39,8 @@ library(divDyn)
 library(rowr)
 library(matrixStats)
 library(beepr)
-library(iNEXT)
 library(reshape2)
-library(RColorBrewer)
+library(colorspace)
 ```
 ---
 ## How it works
@@ -70,7 +69,7 @@ This file contains all the necessary functions to generate formation bins and as
 
 `Scoring_Grid_1(formations, res=0.01)` - Creates a scoring grid using info from all formations.
 
-`Scoring_Grid_2(formations, res=0.01)` - Create a scoring grid ignoring formations with length longer than mean formation length. In his way, long ranging formations don't bias the creation of bins, especially when they appear during the same time interval.
+`Scoring_Grid_2(formations, res=0.01)` - Create a scoring grid ignoring formations with length longer than the third quantile of total formation lengths. In his way, long ranging formations don't bias the creation of bins, especially when they appear during the same time interval.
 
 `plotMaker(rel_data, binlist, ulabel)` - Generates plots through time with user inputted data and Formation_Bins, whilst providing traditional stage data for comparison. NOTE: xlim is specified to fit the chosen time window of this study - as such, this would
 have to be adjusted if other data were to be used.
