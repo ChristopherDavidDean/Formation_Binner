@@ -26,9 +26,8 @@ library(divDyn)
 library(rowr)
 library(matrixStats)
 library(beepr)
-library(iNEXT)
 library(reshape2)
-library(RColorBrewer)
+library(colorspace)
 
 # Data input
 formations <- read.csv (file = "Data/Formations_Final.csv")  #Read in formations
@@ -59,7 +58,7 @@ Form_list <- split(testoccs, testoccs$formation) # Makes inputted occ data into 
 formations <- formations[order(formations$Formation),] # Reorganise formations
 formations$forbinning <- 1:nrow(formations) # Number formations for easy plotting later
 
-# Add mean occurrence latitude and raw diversity per formation
+# Add mean occurrence latitude, raw diversity, umber of occurrences and length per formation
 formations <- occs %>% 
   rename(Formation = formation) %>%
   group_by(Formation) %>%
@@ -67,64 +66,25 @@ formations <- occs %>%
                    Diversity = n_distinct(occurrence.genus_name),
                    Occurrences = n()) %>%
   inner_join(formations, by = "Formation")
+formations$Range <- formations$max_age - formations$min_age
 
 #=============================================== RUNNING TESTS ===================================================================
 
 #===== Set up =====
-Quorum <- c(0.4, 0.6, 0.8)
-bin_limits <- c(2, max(formations$max_age), 66) # Set user defined bin size
+Quorum <- c(0.4, 0.6, 0.8) # Sets quorums for running SQS
+bin_limits <- c(4, max(formations$max_age), 66) # Set user defined bin size - change the first number to vary resolution in graphs.
 
 #===== Bin generation and comparison =====
 Scoring_Grid_1(formations) # Generates scoring grid. Currently set to default resolution (0.01 Ma intervals). Choose either Score_Grid_1 or 2 (find out more in Functions File)
 Scoring_Grid_2(formations)
 newBins(score_grid, formations, bin_limits, allbins, stages, smallamalg = TRUE) # Uses the scoring grid to generate new bins.
-overlap_counter(score_grid)
+overlap_counter(score_grid) # Generates graph of the number of formations through time
 FormationGraph(formations, form_bins, stages, score_grid_2 = TRUE, 
-               draw_by = "Lat", Col = "Occurrences", legend = TRUE, STAGE = FALSE) # Visualises the range of formations in comparison with stage level bins and new bins.
+               draw_by = "Lat", Col = "Diversity", legend = TRUE, STAGE = FALSE) # Visualises the range of formations in comparison with stage level bins and new bins.
 
 #===== Running diversity Methods =====
 FormBin_M1(formations, binlist, Form_list, Quorum) # Generates formation binned plots of diversity, sampling proxies and SQS results using an inclusive model
 FormBin_M2(formations, binlist, Form_list, Quorum) # Generates formation binned plots of diversity, sampling proxies and SQS results using an exclusive model
-FormBin_M3(formations, binlist, Form_list, times = 100, Quorum, run_SQS = FALSE) # Generates plots of diversity, sampling proxies and SQS results using a representative model. 
+FormBin_M3(formations, binlist, Form_list, times = 100, Quorum, run_SQS = TRUE) # Generates plots of diversity, sampling proxies and SQS results using a representative model. 
 # Must be run 2 times or more. At high times of times, might take a while!
 
-#===== Testing Resolution =====
-
-# 3 Ma resolution
-Scoring_Grid_1(formations)
-bin_limits <- c(3, max(formations$max_age), 66)
-newBins(score_grid, formations, bin_limits, allbins, stages)
-FormationGraph(formations, form_bins, stages)
-FormBin_M2(formations, binlist, Form_list, Quorum)
-
-Scoring_Grid_2(formations)
-bin_limits <- c(3, max(formations$max_age), 66)
-newBins(score_grid, formations, bin_limits, allbins, stages)
-FormationGraph(formations, form_bins, stages)
-FormBin_M2(formations, binlist, Form_list, Quorum)
-
-# 2 Ma resolution
-Scoring_Grid_1(formations)
-bin_limits <- c(2, max(formations$max_age), 66)
-newBins(score_grid, formations, bin_limits, allbins, stages)
-FormationGraph(formations, form_bins, stages)
-FormBin_M2(formations, binlist, Form_list, Quorum)
-
-Scoring_Grid_2(formations)
-bin_limits <- c(2, max(formations$max_age), 66)
-newBins(score_grid, formations, bin_limits, allbins, stages)
-FormationGraph(formations, form_bins, stages)
-FormBin_M2(formations, binlist, Form_list, Quorum)
-
-# 4 Ma resolution
-Scoring_Grid_1(formations)
-bin_limits <- c(4, max(formations$max_age), 66)
-newBins(score_grid, formations, bin_limits, allbins, stages)
-FormationGraph(formations, form_bins, stages)
-FormBin_M2(formations, binlist, Form_list, Quorum)
-
-Scoring_Grid_2(formations)
-bin_limits <- c(4, max(formations$max_age), 66)
-newBins(score_grid, formations, bin_limits, allbins, stages)
-FormationGraph(formations, form_bins, stages)
-FormBin_M2(formations, binlist, Form_list, Quorum)
