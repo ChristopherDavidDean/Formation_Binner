@@ -3,7 +3,7 @@
 ## Authors
 
 * **Christopher D. Dean** - [ChristopherDavidDean](https://github.com/ChristopherDavidDean)
-* Alfio A. Chiarenza - [AlfioAlessandroChiarenza](https://github.com/AlfioAlessandroChiarenza)
+* A. Alessandro Chiarenza - [AlfioAlessandroChiarenza](https://github.com/AlfioAlessandroChiarenza)
 * Susannah Maidment
 
 ---
